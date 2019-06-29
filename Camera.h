@@ -29,22 +29,22 @@ public:
 
 	f32 getFov() const;
 
-	Texture* getAlbedo() const;
+	Texture* getGbuffer(std::string _name) const;
 	Texture* getDepth() const;
 
 	void draw() const;
 	
 private:
-	u32				mWidth;
-	u32				mHeight;
-	u32				mFrameBuffer = 0;
-	ProjectionType	mProjectionType;
-	Texture*		mAlbedo = 0;
-	Texture*		mDepth = 0;
-	mathfu::mat4	mView;
-	mathfu::mat4	mProjection;
-	mathfu::mat4	mViewProjection;
-	f32				mFov = 60.0;
+	u32								mWidth;
+	u32								mHeight;
+	u32								mFrameBuffer = 0;
+	ProjectionType					mProjectionType;
+	std::map<std::string, Texture*> mGBuffer;
+	Texture*						mDepth = 0;
+	mathfu::mat4					mView;
+	mathfu::mat4					mProjection;
+	mathfu::mat4					mViewProjection;
+	f32								mFov = 60.0;
 
 	void reCompute();
 };
