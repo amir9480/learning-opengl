@@ -91,6 +91,8 @@ void init()
 {
 	mainCamera = new Camera(1024, 768, Camera::ProjectionType::Perspective);
 	mainCamera->setPosition(mathfu::vec3(0, 0, -1));
+	mainCamera->addPostProccessShader("assets/shaders/bw_fragment.frag");
+	mainCamera->addPostProccessShader("assets/shaders/red_fragment.frag");
 	mesh1 = new Mesh({
 		Vertex( 0.5f,  0.5f, 0.0f, 1.0f, 1.0f),
 		Vertex( 0.5f, -0.5f, 0.0f, 1.0f, 0.0f),

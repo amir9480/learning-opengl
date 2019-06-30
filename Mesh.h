@@ -33,8 +33,9 @@ public:
 
 	void updateMesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount);
 
-
 	static Mesh* quad();
+
+	virtual std::string getClass() const override;
 private:
 	u32 mVAO;
 	u32 mVBO;

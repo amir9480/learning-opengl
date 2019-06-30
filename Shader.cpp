@@ -110,3 +110,9 @@ void Shader::use()
         glUseProgram(mShaderProgram);
     }
 }
+
+Shader* Shader::simple()
+{
+	static Shader* simpleShader = new Shader("assets/shaders/simple_vertex.vert", "assets/shaders/simple_fragment.frag");
+	return simpleShader;
+}

@@ -22,6 +22,8 @@ public:
 	void setTexture(std::string name, const Texture* value, u32 index);
 
     void use();
+
+	static Shader* simple();
 protected:
     u32 mShaderProgram = 0;
 };

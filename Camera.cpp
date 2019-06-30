@@ -27,17 +27,28 @@ Camera::Camera(u32 width, u32 height, ProjectionType projectionType)
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE){
 		ABORT("FRAME BUFFER NOT WORKING!");
 	}
+
+	// Post proccess framebuffer
+	glGenFramebuffers(1, &mPostProccessFrameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
+	mPostProccessTexture = new Texture(mWidth, mHeight);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 Camera::~Camera()
 {
-	glDeleteFramebuffers(1, &mFrameBuffer);
 	for (auto gb : mGBuffer) {
 		delete gb.second;
 	}
+	for (auto pps : mPostProccessShaders) {
+		delete pps.second;
+	}
 	delete mDepth;
+	delete mPostProccessTexture;
+	glDeleteFramebuffers(1, &mFrameBuffer);
+	glDeleteFramebuffers(1, &mPostProccessFrameBuffer);
 }
 
 void Camera::render(void(*callback)(Camera*))
@@ -48,6 +59,25 @@ void Camera::render(void(*callback)(Camera*))
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 	(*callback)(this);
+	glDisable(GL_DEPTH_TEST);
+
+	for (auto postProccessShader : mPostProccessShaders) {
+		// Render to temp texture
+		glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
+		glBindTexture(GL_TEXTURE_2D, mPostProccessTexture->mTexture);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPostProccessTexture->mTexture, 0);
+		postProccessShader.second->use();
+		mGBuffer.at("albedo")->use(0);
+		Mesh::quad()->draw();
+
+		// Render back to main albedo
+		glBindTexture(GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture, 0);;
+		Shader::simple()->use();
+		mPostProccessTexture->use(0);
+		Mesh::quad()->draw();
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
 }
@@ -86,6 +116,11 @@ void Camera::reCompute()
 	}
 }
 
+std::string Camera::getClass() const
+{
+	return "Camera";
+}
+
 Texture* Camera::getGbuffer(std::string _name) const
 {
 	if (mGBuffer.find(_name) == mGBuffer.end()) {
@@ -101,9 +136,13 @@ Texture* Camera::getDepth() const
 
 void Camera::draw() const
 {
-	static Shader* simpleShader = new Shader("assets/shaders/simple_vertex.vert", "assets/shaders/simple_fragment.frag");
-	simpleShader->use();
+	Shader::simple()->use();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	mGBuffer.at("albedo")->use(0);
 	Mesh::quad()->draw();
+}
+
+void Camera::addPostProccessShader(std::string _fragmentPath)
+{
+	mPostProccessShaders[_fragmentPath] = new Shader("assets/shaders/simple_vertex.vert", _fragmentPath.c_str());
 }

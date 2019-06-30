@@ -60,21 +60,58 @@ mathfu::mat4 Node::getTransformMatrix() const
 	return mathfu::mat4::Transform(mPosition, mRotation.ToMatrix(), mScale).Transpose();
 }
 
-void Node::move(mathfu::vec3 _axis)
+Node* Node::move(mathfu::vec3 _axis)
 {
 	mPosition += _axis;
+	return this;
 }
 
-void Node::rotate(mathfu::vec3 _axis, f32 _angle)
+Node* Node::rotate(mathfu::vec3 _axis, f32 _angle)
 {
 	if (_angle != 0) {
 		mRotation = mRotation * mathfu::quat::FromAngleAxis(_angle, _axis * mathfu::kRadiansToDegrees);
 	}
+	return this;
 }
 
-void Node::setPosition(mathfu::vec3 _position)
+Node* Node::setPosition(mathfu::vec3 _position)
 {
 	mPosition = _position;
+	return this;
+}
+
+Node* Node::setName(std::string _name)
+{
+	mName = _name;
+	return this;
+}
+
+Node* Node::addTag(std::string _tag)
+{
+	mTags.push_back(_tag);
+	return this;
+}
+
+std::string Node::getName() const
+{
+	return mName;
+}
+
+const std::vector<std::string>& Node::getTags() const
+{
+	return mTags;
+}
+
+void Node::preRender()
+{
+}
+
+void Node::render()
+{
+}
+
+void Node::postRender()
+{
 }
 
 std::string Node::toString() const

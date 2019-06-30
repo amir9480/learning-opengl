@@ -33,6 +33,10 @@ public:
 	Texture* getDepth() const;
 
 	void draw() const;
+
+	void addPostProccessShader(std::string _fragmentPath);
+
+	
 	
 private:
 	u32								mWidth;
@@ -41,12 +45,18 @@ private:
 	ProjectionType					mProjectionType;
 	std::map<std::string, Texture*> mGBuffer;
 	Texture*						mDepth = 0;
+	u32								mPostProccessFrameBuffer = 0;
+	Texture*					    mPostProccessTexture = nullptr;
+	std::map<std::string, Shader*>	mPostProccessShaders;
 	mathfu::mat4					mView;
 	mathfu::mat4					mProjection;
 	mathfu::mat4					mViewProjection;
 	f32								mFov = 60.0;
 
 	void reCompute();
+
+	// Inherited via Node
+	virtual std::string getClass() const override;
 };
 
 #endif// _CAMERA_H_

@@ -112,13 +112,18 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 Mesh* Mesh::quad()
 {
 	static Mesh* out = new Mesh({
-		Vertex(1.0f,  1.0f, 0.0f, 1.0f, 1.0f),
-		Vertex(1.0f, -1.0f, 0.0f, 1.0f, 0.0f),
+		Vertex(-1.0f,  1.0f, 0.0f, 0.0f, 1.0f),
 		Vertex(-1.0f, -1.0f, 0.0f, 0.0f, 0.0f),
-		Vertex(-1.0f,  1.1f, 0.0f, 0.0f, 1.0f)
+		Vertex( 1.0f,  1.0f, 0.0f, 1.0f, 1.0f),
+		Vertex( 1.0f, -1.0f, 0.0f, 1.0f, 0.0f)
 	}, {
-		0, 1, 3,
+		0, 1, 2,
 		1, 2, 3
 	});
 	return out;
+}
+
+std::string Mesh::getClass() const
+{
+	return "Mesh";
 }
