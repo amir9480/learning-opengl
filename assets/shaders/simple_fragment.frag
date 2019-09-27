@@ -5,6 +5,7 @@ out vec4 FragColor;
 in vec2 TexCoord;
 
 uniform sampler2D screen;
+uniform sampler2D normal;
 
 void main()
 {

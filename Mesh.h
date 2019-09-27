@@ -20,14 +20,27 @@ struct Vertex
 class Mesh : public Node
 {
 public:
+	enum CullMode
+	{
+		Back,
+		Front,
+		None
+	};
+public:
 	Mesh();
 	Mesh(std::vector<Vertex> _vertices, std::vector<u32> _indices);
 	Mesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount);
 	virtual ~Mesh();
+
+	static Mesh* createCube();
+
+	static Mesh* createPlane(u32 _uvRepeat = 1);
 	
 	void draw();
 
 	void destroy();
+
+	void setCullMode(CullMode cullmode = CullMode::Back);
 
 	void updateMesh(const std::vector<Vertex>& _vertices, const std::vector<u32>& _indices);
 
@@ -37,11 +50,12 @@ public:
 
 	virtual std::string getClass() const override;
 private:
-	u32 mVAO;
-	u32 mVBO;
-	u32 mEBO;
-	u32 mVerticesCount;
-	u32 mIndicesCount;
+	u32		 mVAO;
+	u32		 mVBO;
+	u32		 mEBO;
+	u32		 mVerticesCount;
+	u32		 mIndicesCount;
+	CullMode mCullMode;
 };
 
 #endif // _MESH_H_

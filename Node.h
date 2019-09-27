@@ -29,6 +29,8 @@ public:
 
 	Node* setPosition(mathfu::vec3 _position);
 
+	Node* setScale(mathfu::vec3 _scale); 
+
 	Node* setName(std::string _name);
 
 	Node* addTag(std::string _tag);

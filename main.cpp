@@ -5,111 +5,58 @@
 #include "Mesh.h"
 #include "Texture.h"
 #include "Camera.h"
+#include "App.h"
 using namespace std;
 
-void init();
-void destory();
-void update();
-void render();
-void renderScene(Camera* camera);
-void processMouse(f64, f64);
 
-f32 mouseX = 0.0f;
-f32 mouseY = 0.0f;
-f32 mouseLastX = 0.0f;
-f32 mouseLastY = 0.0f;
-f32 mouseDeltaX = 0.0f;
-f32 mouseDeltaY = 0.0f;
-f32 mouseSens = 0.001f;
+class MyApp : public App
+{
+public:
+	MyApp();
 
+	virtual void init() override;
+	virtual void destroy() override;
+	virtual void update() override;
+	virtual void render() override;
+	virtual void renderScene(Camera* camera) override;
+protected:
+	f32 mouseSens = 0.001f;
 
-GLFWwindow* window;
-Mesh* mesh1;
-Shader* shader1;
-Texture* texture1;
-Camera* mainCamera;
+	Mesh* mesh1;
+	Shader* shader1;
+	Texture* texture1;
+	Camera* mainCamera;
+};
+
 
 int main()
 {
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	window = glfwCreateWindow(1024, 768, "LearnOpenGL", NULL, NULL);
-	if (window == NULL)
-	{
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	glfwSetFramebufferSizeCallback(window, [](GLFWwindow * window, int width, int height) {
-		glViewport(0, 0, width, height);
-	});
-	glfwMakeContextCurrent(window);
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return -1;
-	}
-	init();
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
-	static f64 mX, mY;
-	while (!glfwWindowShouldClose(window))
-	{
-		glfwGetCursorPos(window, &mX, &mY);
-		processMouse(mX, mY);
-		update();
-		glClear(GL_COLOR_BUFFER_BIT);
-		render();
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
-	destory();
-	glfwTerminate();
+	MyApp* myApp = new MyApp();
+	myApp->run();
 	return 0;
 }
 
-void processMouse(double xpos, double ypos)
+
+MyApp::MyApp():
+	App(std::string("Hello!"))
 {
-	static bool first = true;
-	if (first) {
-		first = false;
-		mouseX = xpos;
-		mouseY = ypos;
-	}
-	mouseLastX = mouseX;
-	mouseLastY = mouseY;
-	mouseX = xpos;
-	mouseY = ypos;
-	mouseDeltaX = mouseLastX - mouseX;
-	mouseDeltaY = mouseLastY - mouseY;
+	init();
 }
 
-void init()
+void MyApp::init()
 {
-	mainCamera = new Camera(1024, 768, Camera::ProjectionType::Perspective);
-	mainCamera->setPosition(mathfu::vec3(0, 0, -1));
-	mainCamera->addPostProccessShader("assets/shaders/bw_fragment.frag");
-	mainCamera->addPostProccessShader("assets/shaders/red_fragment.frag");
-	mesh1 = new Mesh({
-		Vertex( 0.5f,  0.5f, 0.0f, 1.0f, 1.0f),
-		Vertex( 0.5f, -0.5f, 0.0f, 1.0f, 0.0f),
-		Vertex(-0.5f, -0.5f, 0.0f, 0.0f, 0.0f),
-		Vertex(-0.5f,  0.5f, 0.0f, 0.0f, 1.0f)
-	}, {
-		0, 1, 3,
-		1, 2, 3,
-		0, 3, 1,
-		2, 1, 3
-	});
+	mainCamera = new Camera(1368, 768, Camera::ProjectionType::Perspective, 4.0/3.0);
+	mainCamera->setPosition(mathfu::vec3(0, 1, -2));
+	//mainCamera->addPostProccessShader("assets/shaders/bw_fragment.frag");
+	//mainCamera->addPostProccessShader("assets/shaders/red_fragment.frag");
+	mesh1 = Mesh::createPlane(20);
+	mesh1->setScale(mathfu::vec3(100, 100, 100));
 
 	shader1 = new Shader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
 	texture1 = new Texture("./assets/textures/wall.jpg");
 }
 
-void destory()
+void MyApp::destroy()
 {
 	delete mesh1;
 	delete shader1;
@@ -117,7 +64,7 @@ void destory()
 	delete mainCamera;
 }
 
-void update()
+void MyApp::update()
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
@@ -157,18 +104,16 @@ void update()
 	}
 }
 
-void render()
+void MyApp::render()
 {
-	mainCamera->render(renderScene);
+    mainCamera->render(&MyApp::renderScene, this); 
 	mainCamera->draw();
 }
 
-void renderScene(Camera* camera)
+void MyApp::renderScene(Camera* camera)
 {
 	shader1->use();
 	shader1->setTexture("diffuse", texture1, 0);
 	shader1->setMatrix("MVP", mesh1->getTransformMatrix() * camera->getViewProjection());
 	mesh1->draw();
-	mathfu::vec3 test = mainCamera->getUp();
-	std::cout << mesh1->toString() << std::endl;
 }

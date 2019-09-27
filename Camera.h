@@ -14,10 +14,11 @@ public:
 		Perspective,
 		Ortho,
 	};
-	Camera(u32 width, u32 height, ProjectionType projectionType);
+	Camera(u32 width, u32 height, ProjectionType projectionType, f32 aspectRatio = 0.0f);
 	virtual ~Camera();
 
-	void render(void(*callback)(Camera*));
+	template<typename T>
+	void render(void(T::*callback)(Camera*), T* object);
 
 	mathfu::mat4 getView() const;
 
@@ -41,6 +42,7 @@ public:
 private:
 	u32								mWidth;
 	u32								mHeight;
+	f32								mAspectRatio;
 	u32								mFrameBuffer = 0;
 	ProjectionType					mProjectionType;
 	std::map<std::string, Texture*> mGBuffer;
@@ -58,5 +60,39 @@ private:
 	// Inherited via Node
 	virtual std::string getClass() const override;
 };
+
+
+template<typename T>
+void Camera::render(void(T::*callback)(Camera*), T* object)
+{
+	reCompute();
+	glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	(object->*callback)(this);
+	glDisable(GL_DEPTH_TEST);
+
+	for (auto postProccessShader : mPostProccessShaders) {
+		// Render to temp texture
+		glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
+		glBindTexture(GL_TEXTURE_2D, mPostProccessTexture->mTexture);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPostProccessTexture->mTexture, 0);
+		postProccessShader.second->use();
+		mGBuffer.at("albedo")->use(0);
+		mGBuffer.at("normal")->use(1);
+		Mesh::quad()->draw();
+
+		// Render back to main albedo
+		glBindTexture(GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture, 0);
+		Shader::simple()->use();
+		mPostProccessTexture->use(0);
+		Mesh::quad()->draw();
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST);
+}
 
 #endif// _CAMERA_H_

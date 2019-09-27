@@ -4,6 +4,7 @@
 Node::Node()
 {
 	mRotation = mathfu::quat::identity;
+	mName = "random_" + ::toString<int>(randomNumber(1, INT_MAX));
 }
 
 Node::~Node()
@@ -77,6 +78,12 @@ Node* Node::rotate(mathfu::vec3 _axis, f32 _angle)
 Node* Node::setPosition(mathfu::vec3 _position)
 {
 	mPosition = _position;
+	return this;
+}
+
+Node* Node::setScale(mathfu::vec3 _scale)
+{
+	mScale = _scale;
 	return this;
 }
 

@@ -1,6 +1,6 @@
 #include "Texture.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h";
+#include "3rdparty/stb_image.h";
 
 Texture::Texture(std::string _file)
 {
@@ -14,8 +14,7 @@ Texture::Texture(std::string _file)
 	glBindTexture(GL_TEXTURE_2D, mTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	setFilter(Filter::Anisotropy);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mWidth, mHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	stbi_image_free(data);
@@ -30,15 +29,13 @@ Texture::Texture(int _width, int _height, bool depth)
 	glBindTexture(GL_TEXTURE_2D, mTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, depth ? GL_DEPTH_COMPONENT : GL_RGBA, mWidth, mHeight, 0, depth ? GL_DEPTH_COMPONENT : GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	if (depth) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		setFilter(Filter::Nearest);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	} else {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		setFilter(Filter::Nearest);
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -84,6 +81,31 @@ Texture* Texture::defaultTexture()
 {
 	static Texture* out = Texture::createRaw(0x33333300, 32, 32);
 	return out;
+}
+
+void Texture::setFilter(Filter filter)
+{
+	glBindTexture(GL_TEXTURE_2D, mTexture);
+	switch (filter) {
+	case Filter::Nearest:
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glSamplerParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 0.0f);
+		break;
+	case Filter::Linear:
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glSamplerParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, 0.0f);
+		break;
+	case Filter::Anisotropy:
+		f32 maxanis = maxAnisotropy();
+		if (maxanis > 0.0f) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glSamplerParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, maxanis);
+		}
+		break;
+	}
 }
 
 Texture::Texture()

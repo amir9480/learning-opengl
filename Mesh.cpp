@@ -6,7 +6,9 @@ Mesh::Mesh():
 	mIndicesCount(0),
 	mVAO(0),
 	mVBO(0),
-	mEBO(0) {}
+	mEBO(0),
+	mCullMode(Mesh::CullMode::Back)
+{}
 
 Mesh::Mesh(std::vector<Vertex> _vertices, std::vector<u32> _indicies)
 	:Mesh()
@@ -25,10 +27,66 @@ Mesh::~Mesh()
 	this->destroy();
 }
 
+Mesh* Mesh::createCube()
+{
+	return new Mesh({
+		// back face
+		Vertex(-1.0f, -1.0f, -1.0f,  0.0f, 0.0f, 0.0f,  0.0f, -1.0f), // bottom-left
+		Vertex(1.0f,   1.0f, -1.0f,  1.0f, 1.0f, 0.0f,  0.0f, -1.0f), // top-right
+		Vertex(1.0f,  -1.0f, -1.0f,  1.0f, 0.0f, 0.0f,  0.0f, -1.0f), // bottom-right   
+		Vertex(-1.0f,  1.0f, -1.0f,  0.0f, 1.0f, 0.0f,  0.0f, -1.0f), // top-left
+		// front face
+		Vertex(-1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 0.0f,  0.0f,  1.0f), // bottom-left
+		Vertex(+1.0f, -1.0f,  1.0f,  1.0f, 0.0f, 0.0f,  0.0f,  1.0f), // bottom-right
+		Vertex(+1.0f,  1.0f,  1.0f,  1.0f, 1.0f, 0.0f,  0.0f,  1.0f), // top-right
+		Vertex(-1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 0.0f,  0.0f,  1.0f), // top-left
+		// left face		
+		Vertex(-1.0f,  1.0f,  1.0f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f), // top-right
+		Vertex(-1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 1.0f,  0.0f,  0.0f), // top-left
+		Vertex(-1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 1.0f,  0.0f,  0.0f), // bottom-left
+		Vertex(-1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 1.0f,  0.0f,  0.0f), // bottom-right
+		// right face
+		Vertex(+1.0f,  1.0f,  1.0f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f), // top-left
+		Vertex(+1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 1.0f,  0.0f,  0.0f), // bottom-right
+		Vertex(+1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 1.0f,  0.0f,  0.0f), // top-right     
+		Vertex(+1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 1.0f,  0.0f,  0.0f), // bottom-left     
+		// bottom face
+		Vertex(-1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f, -1.0f,  0.0f), // top-right
+		Vertex(+1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 0.0f, -1.0f,  0.0f), // top-left
+		Vertex(+1.0f, -1.0f,  1.0f,  1.0f, 0.0f, 0.0f, -1.0f,  0.0f), // bottom-left
+		Vertex(-1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 0.0f, -1.0f,  0.0f), // bottom-right
+		// top face
+		Vertex(-1.0f,  1.0f, -1.0f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f), // top-left
+		Vertex(+1.0f,  1.0f,  1.0f,  1.0f, 0.0f, 0.0f,  1.0f,  0.0f), // bottom-right
+		Vertex(+1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 0.0f,  1.0f,  0.0f), // top-right    
+		Vertex(-1.0f,  1.0f,  1.0f,  0.0f, 0.0f, 0.0f,  1.0f,  0.0f)  // bottom-left    
+		}, { 1, 0, 2, 0, 1, 3, 5, 4, 6, 6, 4, 7, 9, 8, 10, 10, 8, 11, 13, 12, 14, 12, 13, 15, 17, 16, 18, 18, 16, 19, 21, 20, 22, 20, 21, 23});
+}
+
+Mesh* Mesh::createPlane(u32 _uvRepeat)
+{
+	return new Mesh({
+		Vertex(-1.0f, 0.0f,  1.0f, 0.0f * _uvRepeat, 1.0f * _uvRepeat, 0.0f, 1.0f, 0.0),
+		Vertex(-1.0f, 0.0f, -1.0f, 0.0f * _uvRepeat, 0.0f * _uvRepeat, 0.0f, 1.0f, 0.0),
+		Vertex( 1.0f, 0.0f,  1.0f, 1.0f * _uvRepeat, 1.0f * _uvRepeat, 0.0f, 1.0f, 0.0),
+		Vertex( 1.0f, 0.0f, -1.0f, 1.0f * _uvRepeat, 0.0f * _uvRepeat, 0.0f, 1.0f, 0.0)
+		}, {
+			0, 1, 2,
+			2, 1, 3
+		}
+	);
+}
+
 void Mesh::draw()
 {
 	glBindVertexArray(mVAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
+	if (mCullMode == CullMode::None) {
+		glDisable(GL_CULL_FACE);
+	} else {
+		glEnable(GL_CULL_FACE);
+		glCullFace(mCullMode == CullMode::Front ? GL_FRONT : GL_BACK);
+	}
 	glDrawElements(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -45,6 +103,11 @@ void Mesh::destroy()
 	mVAO = 0;
 	mVBO = 0;
 	mEBO = 0;
+}
+
+void Mesh::setCullMode(CullMode cullmode)
+{
+	mCullMode = cullmode;
 }
 
 void Mesh::updateMesh(const std::vector<Vertex>& _vertices, const std::vector<u32>& _indices)
@@ -118,7 +181,7 @@ Mesh* Mesh::quad()
 		Vertex( 1.0f, -1.0f, 0.0f, 1.0f, 0.0f)
 	}, {
 		0, 1, 2,
-		1, 2, 3
+		2, 1, 3
 	});
 	return out;
 }

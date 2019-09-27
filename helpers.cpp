@@ -21,4 +21,21 @@ std::string getFileContent(std::string name)
 	return buffer.str();
 }
 
+u32 maxAnisotropy()
+{
+	f32 maxAnis = 0.0f;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnis);
+	return maxAnis;
+}
+
+int randomNumber(int _min, int _max)
+{
+	static bool randSeeded = false;
+	if (!randSeeded) {
+		srand(time(0));
+		randSeeded = true;
+	}
+	return (rand() % (_max - _min)) + _min;
+}
+
 

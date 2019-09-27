@@ -1,10 +1,18 @@
 #include "Camera.h"
 
-Camera::Camera(u32 width, u32 height, ProjectionType projectionType)
+Camera::Camera(u32 width, u32 height, ProjectionType projectionType, f32 aspectRatio)
 	:Node()
 {
 	mWidth = width;
 	mHeight = height;
+	if (aspectRatio == 0.0f) 
+	{
+		mAspectRatio = (float)width / height;
+	}
+	else 
+	{
+		mAspectRatio = aspectRatio;
+	}
 	mProjectionType = projectionType;
 
 	glGenFramebuffers(1, &mFrameBuffer);
@@ -51,37 +59,6 @@ Camera::~Camera()
 	glDeleteFramebuffers(1, &mPostProccessFrameBuffer);
 }
 
-void Camera::render(void(*callback)(Camera*))
-{
-	reCompute();
-	glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
-	glEnable(GL_DEPTH_TEST);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
-	(*callback)(this);
-	glDisable(GL_DEPTH_TEST);
-
-	for (auto postProccessShader : mPostProccessShaders) {
-		// Render to temp texture
-		glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
-		glBindTexture(GL_TEXTURE_2D, mPostProccessTexture->mTexture);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPostProccessTexture->mTexture, 0);
-		postProccessShader.second->use();
-		mGBuffer.at("albedo")->use(0);
-		Mesh::quad()->draw();
-
-		// Render back to main albedo
-		glBindTexture(GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture, 0);;
-		Shader::simple()->use();
-		mPostProccessTexture->use(0);
-		Mesh::quad()->draw();
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_TEST);
-}
-
 mathfu::mat4 Camera::getView() const
 {
 	return mView;
@@ -110,7 +87,7 @@ f32 Camera::getFov() const
 void Camera::reCompute()
 {
 	if (mProjectionType == ProjectionType::Perspective) {
-		mProjection = mathfu::mat4::Perspective(mFov * mathfu::kDegreesToRadians, mWidth / mHeight, 0.01f, 1000.0f, -1.0f).Transpose();
+		mProjection = mathfu::mat4::Perspective(mFov * mathfu::kDegreesToRadians, mAspectRatio, 0.01f, 1000.0f, -1.0f).Transpose();
 		mView = mathfu::mat4::LookAt(mPosition + getForward(), mPosition, getUp()).Transpose();
 		mViewProjection = (mView * mProjection);
 	}
@@ -138,7 +115,8 @@ void Camera::draw() const
 {
 	Shader::simple()->use();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	mGBuffer.at("albedo")->use(0);
+	Shader::simple()->setTexture("screen", mGBuffer.at("albedo"), 0);
+	Shader::simple()->setTexture("normal", mGBuffer.at("normal"), 1);
 	Mesh::quad()->draw();
 }
 
