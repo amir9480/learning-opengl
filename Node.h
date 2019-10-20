@@ -3,6 +3,8 @@
 
 #include "helpers.h"
 
+class Camera;
+
 class Node
 {
 public:
@@ -41,7 +43,7 @@ public:
 
 	virtual void preRender();
 
-	virtual void render();
+	virtual void render(Camera* camera = nullptr);
 
 	virtual void postRender();
 

@@ -13,11 +13,13 @@ public:
 
 	void addNode(Node* _newNode);
 
-	void setMainCamera(Node* _camera);
+	void setMainCamera(Camera* _camera);
 
 	void preRender();
 
 	void render();
+
+	void renderCallback(Camera* _mainCamera);
 
 	void postRender();
 protected:

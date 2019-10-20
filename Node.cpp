@@ -113,7 +113,7 @@ void Node::preRender()
 {
 }
 
-void Node::render()
+void Node::render(Camera* camera)
 {
 }
 

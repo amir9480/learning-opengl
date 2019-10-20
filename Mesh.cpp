@@ -77,8 +77,16 @@ Mesh* Mesh::createPlane(u32 _uvRepeat)
 	);
 }
 
-void Mesh::draw()
+void Mesh::draw(Camera* camera)
 {
+	if (mMaterial && camera) {
+		mMaterial->use();
+		mMaterial->setMatrix("MVP", this->getTransformMatrix() * camera->getViewProjection());
+		mMaterial->setMatrix("worldMatrix", this->getTransformMatrix());
+		mMaterial->setMatrix("viewMatrix", camera->getView());
+		mMaterial->setMatrix("projectionMatrix", camera->getProjection());
+	}
+
 	glBindVertexArray(mVAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
 	if (mCullMode == CullMode::None) {
@@ -184,6 +192,17 @@ Mesh* Mesh::quad()
 		2, 1, 3
 	});
 	return out;
+}
+
+void Mesh::render(Camera* camera)
+{
+	this->draw(camera);
+}
+
+Mesh* Mesh::setMaterial(Shader* material)
+{
+	mMaterial = material;
+	return this;
 }
 
 std::string Mesh::getClass() const

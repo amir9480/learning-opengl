@@ -18,8 +18,6 @@ public:
 
 	virtual void render();
 
-	virtual void renderScene(Camera* camera);
-
 	virtual void destroy();
 
 private:
@@ -33,6 +31,9 @@ protected:
 	f32 mouseY = 0.0f;
 	f32 mouseDeltaX = 0.0f;
 	f32 mouseDeltaY = 0.0f;
+
+	f32 lastTime = 0.0f;
+	f32 deltaTime = 0.0f;
 
 private:
 	f32 mouseLastX = 0.0f;

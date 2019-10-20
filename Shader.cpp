@@ -58,6 +58,11 @@ Shader::~Shader()
     glDeleteProgram(mShaderProgram);
 }
 
+bool Shader::propertyExists(std::string name) const
+{
+	return glGetUniformLocation(mShaderProgram, name.c_str()) == -1;
+}
+
 void Shader::setBool(std::string name, bool value) const
 {
     glUniform1i(glGetUniformLocation(mShaderProgram, name.c_str()), value);

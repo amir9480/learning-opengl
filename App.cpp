@@ -35,9 +35,12 @@ void App::run()
 {
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-	static f64 mX, mY;
+	static f64 mX, mY, theClock;
 	while (!glfwWindowShouldClose(window))
 	{
+		theClock = clock();
+		deltaTime = (theClock - lastTime) / 1000.0f;
+		lastTime = theClock;
 		glfwGetCursorPos(window, &mX, &mY);
 		processMouse(mX, mY);
 		this->update();
@@ -57,10 +60,6 @@ void App::update()
 }
 
 void App::render()
-{
-}
-
-void App::renderScene(Camera* camera)
 {
 }
 

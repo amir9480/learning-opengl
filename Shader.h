@@ -11,6 +11,7 @@ public:
     Shader(const char* vertexFile, const char* fragmentFile);
     virtual ~Shader();
 
+	bool propertyExists(std::string name) const;
     void setBool(std::string name, bool value) const;
     void setInt(std::string name, int value) const;
     void setFloat(std::string name, float value) const;
@@ -24,8 +25,11 @@ public:
     void use();
 
 	static Shader* simple();
+
+public:
 protected:
     u32 mShaderProgram = 0;
 };
+
 
 #endif // _SHADER_H_

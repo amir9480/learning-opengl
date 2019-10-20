@@ -7,10 +7,13 @@ out vec3 Normal;
 out vec2 TexCoord;
 
 uniform mat4 MVP;
+uniform mat4 worldMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 
 void main()
 {
     gl_Position = vec4(aPos, 1.0) * MVP;
-	Normal = aNormal * mat3x3(MVP);
+	Normal = aNormal * mat3x3(worldMatrix);
 	TexCoord = aTexCoord;
 }

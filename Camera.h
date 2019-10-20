@@ -26,6 +26,8 @@ public:
 
 	mathfu::mat4 getViewProjection() const;
 
+	void postProccess(Shader* shader);
+
 	void setFov(const f32& _fov);
 
 	f32 getFov() const;
@@ -74,21 +76,7 @@ void Camera::render(void(T::*callback)(Camera*), T* object)
 	glDisable(GL_DEPTH_TEST);
 
 	for (auto postProccessShader : mPostProccessShaders) {
-		// Render to temp texture
-		glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
-		glBindTexture(GL_TEXTURE_2D, mPostProccessTexture->mTexture);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPostProccessTexture->mTexture, 0);
-		postProccessShader.second->use();
-		mGBuffer.at("albedo")->use(0);
-		mGBuffer.at("normal")->use(1);
-		Mesh::quad()->draw();
-
-		// Render back to main albedo
-		glBindTexture(GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture, 0);
-		Shader::simple()->use();
-		mPostProccessTexture->use(0);
-		Mesh::quad()->draw();
+		this->postProccess(postProccessShader.second);
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

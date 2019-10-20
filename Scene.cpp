@@ -8,9 +8,6 @@ Scene::Scene(std::string _name)
 
 Scene::~Scene()
 {
-	for (auto node : mNodes) {
-		delete node;
-	}
 }
 
 void Scene::addNode(Node* _newNode)
@@ -18,8 +15,9 @@ void Scene::addNode(Node* _newNode)
 	mNodes.push_back(_newNode);
 }
 
-void Scene::setMainCamera(Node* _camera)
+void Scene::setMainCamera(Camera* _camera)
 {
+	mMainCamera = _camera;
 }
 
 void Scene::preRender()
@@ -31,8 +29,13 @@ void Scene::preRender()
 
 void Scene::render()
 {
+	mMainCamera->render(&Scene::renderCallback, this);
+}
+
+void Scene::renderCallback(Camera* _mainCamera)
+{
 	for (auto node : mNodes) {
-		node->render();
+		node->render(_mainCamera);
 	}
 }
 

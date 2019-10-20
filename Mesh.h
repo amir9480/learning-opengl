@@ -2,6 +2,8 @@
 #define _MESH_H_
 #include "helpers.h"
 #include "Node.h"
+#include "Shader.h"
+#include "Camera.h"
 
 struct Vertex
 {
@@ -36,7 +38,7 @@ public:
 
 	static Mesh* createPlane(u32 _uvRepeat = 1);
 	
-	void draw();
+	void draw(Camera* camera = nullptr);
 
 	void destroy();
 
@@ -48,6 +50,10 @@ public:
 
 	static Mesh* quad();
 
+	virtual void render(Camera* camera = nullptr);
+
+	Mesh* setMaterial(Shader* material);
+
 	virtual std::string getClass() const override;
 private:
 	u32		 mVAO;
@@ -56,6 +62,7 @@ private:
 	u32		 mVerticesCount;
 	u32		 mIndicesCount;
 	CullMode mCullMode;
+	Shader*  mMaterial;
 };
 
 #endif // _MESH_H_
