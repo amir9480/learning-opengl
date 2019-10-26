@@ -113,9 +113,13 @@ f32 Camera::getFov() const
 
 void Camera::reCompute()
 {
+	mView = mathfu::mat4::LookAt(getGlobalPosition() + getForward(), getGlobalPosition(), getUp(), -1.0).Transpose();
 	if (mProjectionType == ProjectionType::Perspective) {
 		mProjection = mathfu::mat4::Perspective(mFov * mathfu::kDegreesToRadians, mAspectRatio, 0.01f, 1000.0f, -1.0f).Transpose();
-		mView = mathfu::mat4::LookAt(mPosition + getForward(), mPosition, getUp()).Transpose();
+		mViewProjection = (mView * mProjection);
+	}
+	else {
+		mProjection = mathfu::mat4::Ortho(-1, 1, -1, 1, 0.01f, 1000.0f, -1.0f);
 		mViewProjection = (mView * mProjection);
 	}
 }

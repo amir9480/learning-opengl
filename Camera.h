@@ -60,7 +60,7 @@ private:
 	void reCompute();
 
 	// Inherited via Node
-	virtual std::string getClass() const override;
+	virtual std::string getClass() const;
 };
 
 

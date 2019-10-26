@@ -26,7 +26,9 @@ protected:
 
 	Shader* shader1;
 	Texture* texture1;
+	Texture* texture2;
 	Camera* mainCamera;
+	Node* mainCameraController;
 	Scene* scene;
 	Shader* lightShader;
 
@@ -50,26 +52,38 @@ MyApp::MyApp():
 void MyApp::init()
 {
 	scene = new Scene("level1");
+	mainCameraController = (new Node())->setName("cameraController");
 	mainCamera = new Camera(1368, 768, Camera::ProjectionType::Perspective, 4.0/3.0);
 	mainCamera->setPosition(mathfu::vec3(0, 1, -2));
+	mainCamera->setParent(mainCameraController);
+	mainCamera->setName("mainCamera");
 	//mainCamera->addPostProccessShader("assets/shaders/bw_fragment.frag");
 	//mainCamera->addPostProccessShader("assets/shaders/red_fragment.frag");
 
 	shader1 = new Shader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
 	texture1 = new Texture("./assets/textures/wall.jpg");
+	texture2 = new Texture("./assets/textures/grass.jpg");
 
 	lightShader = new Shader("assets/shaders/simple_vertex.vert", "assets/shaders/light.frag");
 
-	scene->addNode(Mesh::createPlane(20)->setMaterial(shader1)->setScale(mathfu::vec3(100, 100, 100)));
-	scene->addNode(Mesh::createCube()->setMaterial(shader1)->setPosition(mathfu::vec3(0, 1, 1)));
-	scene->addNode(mainCamera);
-	scene->setMainCamera(mainCamera);
+	scene->addNode(Mesh::createPlane(30)->setDiffuse(texture2)->setMaterial(shader1)->setName("plane_mesh")->setScale(mathfu::vec3(100, 100, 100)));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
+	scene->find("mesh2")->addChild(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh3")->setPosition(mathfu::vec3(5, 0, 5)));
+	scene->find("mesh3")->addChild(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh4")->setPosition(mathfu::vec3(-5, 0, 0)));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh5")->setPosition(mathfu::vec3(-20, 1, 1)));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh6")->setPosition(mathfu::vec3(20, 1, 20))->rotate(mathfu::vec3(0, 1, 0), 45));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh7")->setPosition(mathfu::vec3(-20, 1, 20)));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh8")->setPosition(mathfu::vec3(20, 1, -20)));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh9")->setPosition(mathfu::vec3(-20, 1, -20)));
+	scene->addNode(mainCameraController);
+	scene->setMainCamera(reinterpret_cast<Camera*>(mainCameraController->findChild("mainCamera")));
 }
 
 void MyApp::destroy()
 {
 	delete shader1;
 	delete texture1;
+	delete texture2;
 	delete mainCamera;
 	delete scene;
 	delete lightShader;
@@ -82,12 +96,38 @@ void MyApp::update()
 		return;
 	}
 	f32 speed = 10.0f;
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		speed = 20.0f;
+	} else {
+		speed = 10.0f;
+	}
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) {
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			//mesh1->move(mesh1->getForward() * speed * this->deltaTime);
+			scene->find("mesh2")->move(mathfu::vec3(0, 0, 1) * speed * this->deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			//mesh1->move(mesh1->getBackward() * speed * this->deltaTime);
+			scene->find("mesh2")->move(mathfu::vec3(0, 0, -1) * speed * this->deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+			scene->find("mesh2")->move(mathfu::vec3(-1, 0, 0) * speed * this->deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+			scene->find("mesh2")->move(mathfu::vec3(1, 0, 0) * speed * this->deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+			scene->find("mesh2")->move(mathfu::vec3(0, 1, 0) * speed * this->deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+			scene->find("mesh2")->move(mathfu::vec3(0, -1, 0) * speed * this->deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+			scene->find("mesh2")->rotate(mathfu::vec3(0, 0, 1), this->deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+			scene->find("mesh2")->rotate(mathfu::vec3(1, 0, 0), this->deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+			scene->find("mesh2")->rotate(mathfu::vec3(0, 1, 0), this->deltaTime);
 		}
 	} else {
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -110,15 +150,16 @@ void MyApp::update()
 		}
 	}
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
-		mainCamera->rotate(mainCamera->getUp(), -mouseDeltaX * mouseSens * this->deltaTime);
-		mainCamera->rotate(mainCamera->getLeft(), mouseDeltaY * mouseSens * this->deltaTime);
+		mainCameraController->rotate(mathfu::vec3(mainCameraController->getLeft().x, 0, mainCameraController->getLeft().z).Normalized(), -mouseDeltaY * mouseSens * this->deltaTime);
+		mainCamera->rotate(mathfu::vec3(0, 1, 0), mouseDeltaX * mouseSens * this->deltaTime);
 	}
+	scene->find("mesh2")->rotate(mathfu::vec3(0, 1, 0), this->deltaTime);
+	scene->find("mesh3")->rotate(mathfu::vec3(0, 1, 0), this->deltaTime);
+	scene->find("mesh4")->rotate(mathfu::vec3(0, 1, 0), this->deltaTime);
 }
 
 void MyApp::render()
 {
-	shader1->use();
-	shader1->setTexture("diffuse", texture1, 0);
 	scene->render();
 	mainCamera->postProccess(lightShader);
     mainCamera->draw();

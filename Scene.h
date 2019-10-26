@@ -22,6 +22,8 @@ public:
 	void renderCallback(Camera* _mainCamera);
 
 	void postRender();
+
+	Node* find(std::string name);
 protected:
 	std::string				mName;
 	std::vector<Node*>		mNodes;

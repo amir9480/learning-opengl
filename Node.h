@@ -23,6 +23,10 @@ public:
 	mathfu::quat getRotation() const;
 	mathfu::vec3 getScale() const;
 
+	mathfu::vec3 getGlobalPosition() const;
+	mathfu::quat getGlobalRotation() const;
+	mathfu::vec3 getGlobalScale() const;
+
 	mathfu::mat4 getTransformMatrix() const;
 
 	Node* move(mathfu::vec3 _axis);
@@ -37,6 +41,12 @@ public:
 
 	Node* addTag(std::string _tag);
 
+	Node* setParent(Node* _node);
+
+	Node* getParent();
+
+	Node* addChild(Node* _newChild);
+
 	std::string getName() const;
 
 	const std::vector<std::string>& getTags() const;
@@ -47,10 +57,15 @@ public:
 
 	virtual void postRender();
 
-	virtual std::string getClass() const = 0;
+	virtual std::string getClass();
 
 	virtual std::string toString() const;
+
+	Node* findChild(std::string name);
+
 protected:
+	Node*						mParent = nullptr;
+	std::list<Node*>			mChildren;
 	std::string	 				mName;
 	std::vector<std::string>	mTags;
 	mathfu::vec3				mPosition = mathfu::vec3(0.0f, 0.0f, 0.0f);

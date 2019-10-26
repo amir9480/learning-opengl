@@ -85,6 +85,7 @@ void Mesh::draw(Camera* camera)
 		mMaterial->setMatrix("worldMatrix", this->getTransformMatrix());
 		mMaterial->setMatrix("viewMatrix", camera->getView());
 		mMaterial->setMatrix("projectionMatrix", camera->getProjection());
+		mMaterial->setTexture("diffuse", mDiffuse, 0);
 	}
 
 	glBindVertexArray(mVAO);
@@ -197,11 +198,20 @@ Mesh* Mesh::quad()
 void Mesh::render(Camera* camera)
 {
 	this->draw(camera);
+	for (auto& child : mChildren) {
+		child->render(camera);
+	}
 }
 
 Mesh* Mesh::setMaterial(Shader* material)
 {
 	mMaterial = material;
+	return this;
+}
+
+Mesh* Mesh::setDiffuse(Texture* texture)
+{
+	mDiffuse = texture;
 	return this;
 }
 

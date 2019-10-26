@@ -45,3 +45,19 @@ void Scene::postRender()
 		node->postRender();
 	}
 }
+
+Node* Scene::find(std::string name)
+{
+	for (auto node : mNodes) {
+		if (node->getName() == name) {
+			return node;
+		}
+	}
+	Node* out;
+	for (auto node : mNodes) {
+		if (out = node->findChild(name)) {
+			return out;
+		}
+	}
+	return nullptr;
+}

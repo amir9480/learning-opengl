@@ -7,8 +7,18 @@
 class Light : public Node
 {
 public:
+	enum Type {
+		Directional,
+		Point
+	};
 
-	virtual std::string getClass() const override;
+public:
+	Light(Type _type);
+
+	virtual std::string getClass() const;
+
+protected:
+	Type mType;
 };
 
 #endif // _LIGHT_H_

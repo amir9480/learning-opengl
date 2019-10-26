@@ -54,7 +54,9 @@ public:
 
 	Mesh* setMaterial(Shader* material);
 
-	virtual std::string getClass() const override;
+	Mesh* setDiffuse(Texture* texture);
+
+	virtual std::string getClass() const;
 private:
 	u32		 mVAO;
 	u32		 mVBO;
@@ -63,6 +65,7 @@ private:
 	u32		 mIndicesCount;
 	CullMode mCullMode;
 	Shader*  mMaterial;
+	Texture* mDiffuse = nullptr;
 };
 
 #endif // _MESH_H_
