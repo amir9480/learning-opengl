@@ -1,13 +1,19 @@
 #version 330 core
 
+const int LightTypeDirectional = 0;
+const int LightTypePoint = 1;
+
 out vec4 FragColor;
   
 in vec2 TexCoord;
 
-
-uniform vec3 lightColor = vec3(0.95, 0.7, 0.4);
+uniform vec3 lightColor = vec3(1.0, 1.0, 1.0);
 uniform vec3 lightDirection = normalize(vec3(0.5, -0.5, 0.5));
-uniform vec3 camPos = vec3(0,0,0);
+uniform int lightType = LightTypeDirectional;
+uniform vec3 lightPosition = vec3(0.0, 3.0, 0.0);
+uniform float lightRadius =  250.0;
+uniform float lightPower = 1.0;
+uniform vec3 camPos = vec3(0, 0, 0);
 uniform mat4x4 viewProjection;
 uniform mat4x4 view;
 uniform mat4x4 projection;
@@ -15,6 +21,7 @@ uniform mat4x4 viewProjectionInv;
 uniform mat4x4 viewInv;
 uniform mat4x4 projectionInv;
 
+uniform sampler2D final;
 uniform sampler2D albedo;
 uniform sampler2D normal;
 uniform sampler2D depth;
@@ -46,12 +53,24 @@ void main()
 	normalVec = normalize((normalVec * 2.0) - 1.0);
 	vec3 worldPos = WorldPosFromDepth(texture2D(depth, TexCoord).r);
 
-	vec3 ambient = 0.2 * albedoPixel * lightColor;
-	vec3 diffuse = max(0.0, dot(normalVec, lightDirection)) * albedoPixel * lightColor;
-	vec3 reflectDir = reflect(-lightDirection, normalVec);
-	vec3 specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 256)) * albedoPixel * lightColor;
+	vec3 diffuse = albedoPixel.rgb;
+	vec3 ambient = vec3(0, 0, 0);
+	vec3 specular = vec3(0, 0, 0);
+
+	if (lightType == LightTypeDirectional) {
+		ambient = 0.0 * albedoPixel * lightColor;
+		diffuse *= max(0.0, dot(normalVec, lightDirection)) * lightColor;
+		vec3 reflectDir = reflect(-lightDirection, normalVec);
+		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 256)) * albedoPixel * lightColor;
+	} else if (lightType == LightTypePoint) {
+		vec3 lightToPixel = normalize(worldPos - lightPosition);
+		float lightToPixelDistance = distance(worldPos, lightPosition);
+		float att = clamp(1.0 - lightToPixelDistance * lightToPixelDistance /(lightRadius * lightRadius), 0.0, 1.0);
+		att *= att;
+		diffuse *= max(0.0, dot(normalVec, lightToPixel)) * lightColor * att * lightPower;
+	}
 
 
-	FragColor = vec4(ambient + diffuse + specular, 1);
+	FragColor = texture2D(final, TexCoord) + vec4(ambient + diffuse + specular, 1);
 	//FragColor = vec4(normalVec, 1);
 }

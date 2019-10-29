@@ -61,3 +61,8 @@ Node* Scene::find(std::string name)
 	}
 	return nullptr;
 }
+
+std::list<Node*>& Scene::getNodes()
+{
+	return mNodes;
+}

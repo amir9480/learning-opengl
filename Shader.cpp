@@ -63,43 +63,51 @@ bool Shader::propertyExists(std::string name) const
 	return glGetUniformLocation(mShaderProgram, name.c_str()) == -1;
 }
 
-void Shader::setBool(std::string name, bool value) const
+void Shader::setBool(std::string name, bool value)
 {
+	use();
     glUniform1i(glGetUniformLocation(mShaderProgram, name.c_str()), value);
 }
 
-void Shader::setInt(std::string name, int value) const
+void Shader::setInt(std::string name, int value)
 {
+	use();
     glUniform1i(glGetUniformLocation(mShaderProgram, name.c_str()), value);
 }
 
-void Shader::setFloat(std::string name, float value) const
+void Shader::setFloat(std::string name, float value)
 {
+	use();
     glUniform1f(glGetUniformLocation(mShaderProgram, name.c_str()), value);
 }
 
-void Shader::setFloat2(std::string name, float value1, float value2) const
+void Shader::setFloat2(std::string name, float value1, float value2)
 {
+	use();
     glUniform2f(glGetUniformLocation(mShaderProgram, name.c_str()), value1, value2);
 }
 
-void Shader::setFloat3(std::string name, mathfu::vec3 value) const
+void Shader::setFloat3(std::string name, mathfu::vec3 value)
 {
+	use();
     setFloat3(name, value[0], value[1], value[2]);
 }
 
-void Shader::setFloat3(std::string name, float value1, float value2, float value3) const
+void Shader::setFloat3(std::string name, float value1, float value2, float value3)
 {
+	use();
     glUniform3f(glGetUniformLocation(mShaderProgram, name.c_str()), value1, value2, value3);
 }
 
-void Shader::setFloat4(std::string name, float value1, float value2, float value3, float value4) const
+void Shader::setFloat4(std::string name, float value1, float value2, float value3, float value4)
 {
+	use();
     glUniform4f(glGetUniformLocation(mShaderProgram, name.c_str()), value1, value2, value3, value4);
 }
 
 void Shader::setMatrix(std::string name, mathfu::mat4 value)
 {
+	use();
     glUniformMatrix4fv(glGetUniformLocation(mShaderProgram, name.c_str()), 1, false, (float*)&value);
 }
 

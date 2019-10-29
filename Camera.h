@@ -51,6 +51,7 @@ private:
 	Texture*						mDepth = 0;
 	u32								mPostProccessFrameBuffer = 0;
 	Texture*					    mPostProccessTexture = nullptr;
+	Texture*					    mFinalImage = nullptr;
 	std::map<std::string, Shader*>	mPostProccessShaders;
 	mathfu::mat4					mView;
 	mathfu::mat4					mProjection;
@@ -69,11 +70,19 @@ void Camera::render(void(T::*callback)(Camera*), T* object)
 {
 	reCompute();
 	glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture, 0);
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	(object->*callback)(this);
 	glDisable(GL_DEPTH_TEST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
+	glBindTexture(GL_TEXTURE_2D, mFinalImage->mTexture);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFinalImage->mTexture, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	//Shader::simple()->use();
+	//Mesh::quad()->draw();
 
 	for (auto postProccessShader : mPostProccessShaders) {
 		this->postProccess(postProccessShader.second);

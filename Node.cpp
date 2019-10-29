@@ -174,7 +174,7 @@ void Node::postRender()
 {
 }
 
-std::string Node::getClass()
+std::string Node::getClass() const
 {
 	return std::string("Node");
 }
@@ -201,4 +201,9 @@ Node* Node::findChild(std::string name)
 		}
 	}
 	return nullptr;
+}
+
+std::list<Node*>& Node::getChildren()
+{
+	return mChildren;
 }

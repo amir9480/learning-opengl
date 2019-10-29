@@ -57,11 +57,13 @@ public:
 
 	virtual void postRender();
 
-	virtual std::string getClass();
+	virtual std::string getClass() const;
 
 	virtual std::string toString() const;
 
 	Node* findChild(std::string name);
+
+	std::list<Node*>& getChildren();
 
 protected:
 	Node*						mParent = nullptr;

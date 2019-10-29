@@ -24,9 +24,11 @@ public:
 	void postRender();
 
 	Node* find(std::string name);
+
+	std::list<Node*>& getNodes();
 protected:
 	std::string				mName;
-	std::vector<Node*>		mNodes;
+	std::list<Node*>		mNodes;
 	Camera*					mMainCamera;
 };
 

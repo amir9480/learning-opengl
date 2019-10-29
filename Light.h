@@ -13,12 +13,27 @@ public:
 	};
 
 public:
-	Light(Type _type);
+	Light(Type _type = Type::Point);
+
+	Light::Type getType() const;
+	Light* setType(Light::Type _newType);
+
+	mathfu::vec3 getColor() const;
+	Light* setColor(mathfu::vec3 _newColor);
+
+	Light* setPower(float power);
+	float getPower() const;
+
+	Light* setRadius(float radius);
+	float getRadius() const;
 
 	virtual std::string getClass() const;
 
 protected:
 	Type mType;
+	mathfu::vec3 mColor = mathfu::vec3(1, 1, 1);
+	float mPower = 1.0;
+	float mRadius = 10.0f;
 };
 
 #endif // _LIGHT_H_
