@@ -148,6 +148,7 @@ Texture* Camera::getDepth() const
 void Camera::draw() const
 {
 	Shader::simple()->use();
+	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// Shader::simple()->setTexture("screen", getGbuffer("albedo"), 0);
 	Shader::simple()->setTexture("screen", mFinalImage, 0);

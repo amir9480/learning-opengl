@@ -79,9 +79,10 @@ void MyApp::init()
 	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh9")->setPosition(mathfu::vec3(-20, 1, -20)));
 	scene->addNode(mainCameraController);
 	scene->setMainCamera(reinterpret_cast<Camera*>(mainCameraController->findChild("mainCamera")));
-	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.98, 0.8, 0.7))->rotate(mathfu::vec3(1, 0, 0), -45.0 * mathfu::kDegreesToRadians));
-	scene->addNode((new Light(Light::Type::Point))->setColor(mathfu::vec3(1.0, 0.0, 0.0))->setPosition(mathfu::vec3(10, 3, 10)));
-	scene->addNode((new Light(Light::Type::Point))->setColor(mathfu::vec3(0.3, 0.5, 1.0))->setPosition(mathfu::vec3(-10, 3, 10)));
+	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.98, 0.8, 0.7))->setPower(0.3)->rotate(mathfu::vec3(1, 0, 0), -45.0 * mathfu::kDegreesToRadians));
+	for (int i = 0; i < 40; i++) {
+		scene->addNode((new Light(Light::Type::Point))->setColor(mathfu::vec3(randomNumber(0, 250)/250.0, randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0))->setRadius(randomNumber(5, 20))->setPosition(mathfu::vec3(randomNumber(-100, 100), randomNumber(1, 4), randomNumber(-100, 100))));
+	}
 }
 
 void MyApp::destroy()

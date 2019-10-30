@@ -69,6 +69,7 @@ template<typename T>
 void Camera::render(void(T::*callback)(Camera*), T* object)
 {
 	reCompute();
+	glViewport(0, 0, mWidth, mHeight);
 	glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture, 0);
 	glEnable(GL_DEPTH_TEST);

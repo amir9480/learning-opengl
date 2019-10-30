@@ -59,15 +59,17 @@ void main()
 
 	if (lightType == LightTypeDirectional) {
 		ambient = 0.0 * albedoPixel * lightColor;
-		diffuse *= max(0.0, dot(normalVec, lightDirection)) * lightColor;
+		diffuse *= max(0.0, dot(normalVec, lightDirection)) * lightColor * lightPower;
 		vec3 reflectDir = reflect(-lightDirection, normalVec);
-		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 256)) * albedoPixel * lightColor;
+		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel * lightColor * lightPower;
 	} else if (lightType == LightTypePoint) {
 		vec3 lightToPixel = normalize(worldPos - lightPosition);
 		float lightToPixelDistance = distance(worldPos, lightPosition);
 		float att = clamp(1.0 - lightToPixelDistance * lightToPixelDistance /(lightRadius * lightRadius), 0.0, 1.0);
 		att *= att;
 		diffuse *= max(0.0, dot(normalVec, lightToPixel)) * lightColor * att * lightPower;
+		vec3 reflectDir = reflect(-lightToPixel, normalVec);
+		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel * lightColor * att * lightPower;
 	}
 
 

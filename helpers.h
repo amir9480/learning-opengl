@@ -22,6 +22,9 @@
 #define ABORT(MSG) std::cout<<"ERROR "<<MSG<<"\n\nFile:"<<__FILE__<<"("<<__LINE__<<")"<<std::endl;exit(-1);
 #define extends : public
 
+#define WINDOW_WIDTH 1360
+#define WINDOW_HEIGHT 768
+
 typedef unsigned char u8;
 typedef unsigned int u16;
 typedef unsigned int u32;
