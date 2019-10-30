@@ -69,7 +69,7 @@ void MyApp::init()
 	lightShader = new Shader("assets/shaders/simple_vertex.vert", "assets/shaders/light.frag");
 
 	scene->addNode(Mesh::createPlane(30)->setDiffuse(texture2)->setMaterial(shader1)->setName("plane_mesh")->setScale(mathfu::vec3(100, 100, 100)));
-	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
+	scene->addNode(Mesh::createSphere()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
 	scene->find("mesh2")->addChild(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh3")->setPosition(mathfu::vec3(5, 0, 5)));
 	scene->find("mesh3")->addChild(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh4")->setPosition(mathfu::vec3(-5, 0, 0)));
 	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh5")->setPosition(mathfu::vec3(-20, 1, 1)));

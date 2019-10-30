@@ -37,6 +37,8 @@ public:
 	static Mesh* createCube();
 
 	static Mesh* createPlane(u32 _uvRepeat = 1);
+
+	static Mesh* createSphere(u32 rows = 24, u32 cols = 24);
 	
 	void draw(Camera* camera = nullptr);
 

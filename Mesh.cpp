@@ -77,6 +77,56 @@ Mesh* Mesh::createPlane(u32 _uvRepeat)
 	);
 }
 
+Mesh* Mesh::createSphere(u32 rows, u32 cols)
+{
+	std::vector<Vertex> vertices;
+	std::vector<u32> indicies;
+
+	//vertices.resize(rows * cols);
+	//indicies.resize(rows * cols * 3);
+
+	f32 rowStep = 1.0 / (rows - 1);
+	f32 colStep = 1.0 / (cols - 1);
+	f32 piOn2 = mathfu::kPi * 0.5f;
+	f32 piM2 = mathfu::kPi * 2.0f;
+	u32 currentRow = 0;
+	u32 nextRow = 0;
+	mathfu::vec3 tempVec;
+	mathfu::vec3 tempNorm;
+
+	for (u32 r = 0; r < rows; r++) {
+		for (u32 c = 0; c < cols; c++) {
+
+			tempVec = mathfu::vec3(
+				cos(piM2 * c * colStep)* sin(mathfu::kPi * r * rowStep),
+				sin(-piOn2 + mathfu::kPi * r * rowStep),
+				sin(piM2 * c * colStep)* sin(mathfu::kPi * r * rowStep)
+			);
+			tempNorm = - tempVec.Normalized();
+			vertices.push_back(Vertex(
+				tempVec.x, tempVec.y, tempVec.z,
+				r * rowStep,
+				c * colStep,
+				tempNorm.x, tempNorm.y, tempNorm.z
+			));
+			
+			currentRow = r * cols;
+			nextRow = (r+1) * cols;
+
+			if (r < rows - 1 && c < cols - 1) {
+				indicies.push_back(nextRow + c);
+				indicies.push_back(currentRow + c);
+				indicies.push_back(nextRow + c + 1);
+
+				indicies.push_back(nextRow + c + 1);
+				indicies.push_back(currentRow + c);
+				indicies.push_back(currentRow + c + 1);
+			}
+		}
+	}
+	return new Mesh(vertices, indicies);
+}
+
 void Mesh::draw(Camera* camera)
 {
 	if (mMaterial && camera) {
