@@ -19,6 +19,8 @@ struct Vertex
 		u(_u), v(_v) {}
 };
 
+class Camera;
+
 class Mesh : public Node
 {
 public:
@@ -38,7 +40,7 @@ public:
 
 	static Mesh* createPlane(u32 _uvRepeat = 1);
 
-	static Mesh* createSphere(u32 rows = 24, u32 cols = 24);
+	static Mesh* createSphere(u32 rows = 12, u32 cols = 12);
 	
 	void draw(Camera* camera = nullptr);
 
@@ -51,6 +53,8 @@ public:
 	void updateMesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount);
 
 	static Mesh* quad();
+
+	static Mesh* sphere();
 
 	virtual void render(Camera* camera = nullptr);
 

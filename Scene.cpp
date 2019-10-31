@@ -1,4 +1,5 @@
 #include "Scene.h"
+#include "Light.h"
 
 
 Scene::Scene(std::string _name)
@@ -42,6 +43,9 @@ void Scene::renderCallback(Camera* _mainCamera)
 void Scene::postRender()
 {
 	for (auto node : mNodes) {
+		renderLights(node);
+	}
+	for (auto node : mNodes) {
 		node->postRender();
 	}
 }
@@ -65,4 +69,24 @@ Node* Scene::find(std::string name)
 std::list<Node*>& Scene::getNodes()
 {
 	return mNodes;
+}
+
+void Scene::renderLights(Node* node)
+{
+	Shader* lightShader = Shader::lightShader();
+	if (node->getClass() == "Light") {
+		Light* light = reinterpret_cast<Light*>(node);
+		light->setShaderParameters(lightShader);
+
+		if (light->getType() == Light::Directional) {
+			lightShader->setMatrix("MVP", mathfu::mat4::Identity());
+			mMainCamera->postProccess(lightShader, true);
+		}
+		else {
+			glFrontFace(GL_CW);
+			lightShader->setMatrix("MVP", light->getTransformMatrix() * mMainCamera->getViewProjection());
+			mMainCamera->postProccess(lightShader, true, Mesh::sphere());
+			glFrontFace(GL_CCW);
+		}
+	}
 }

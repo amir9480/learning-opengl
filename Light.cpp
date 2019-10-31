@@ -42,12 +42,23 @@ float Light::getPower() const
 Light* Light::setRadius(float radius)
 {
 	mRadius = radius;
+	mScale = mathfu::vec3(0.8, 0.8, 0.8) * radius;
 	return this;
 }
 
 float Light::getRadius() const
 {
 	return mRadius;
+}
+
+void Light::setShaderParameters(Shader* lightShader) const
+{
+	lightShader->setInt("lightType", (int)this->getType());
+	lightShader->setFloat3("lightColor", this->getColor());
+	lightShader->setFloat3("lightDirection", this->getForward());
+	lightShader->setFloat("lightPower", this->getPower());
+	lightShader->setFloat("lightRadius", this->getRadius());
+	lightShader->setFloat3("lightPosition", this->getPosition());
 }
 
 std::string Light::getClass() const

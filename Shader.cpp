@@ -129,3 +129,9 @@ Shader* Shader::simple()
 	static Shader* simpleShader = new Shader("assets/shaders/simple_vertex.vert", "assets/shaders/simple_fragment.frag");
 	return simpleShader;
 }
+
+Shader* Shader::lightShader()
+{
+	static Shader* lightShader = new Shader("assets/shaders/light_vertex.vert", "assets/shaders/light.frag");
+	return lightShader;
+}

@@ -27,6 +27,9 @@ public:
 
 	std::list<Node*>& getNodes();
 protected:
+	void renderLights(Node* node);
+
+protected:
 	std::string				mName;
 	std::list<Node*>		mNodes;
 	Camera*					mMainCamera;

@@ -7,6 +7,8 @@
 #include "Mesh.h"
 #include "Shader.h"
 
+class Mesh;
+
 class Camera : public Node
 {
 public:
@@ -26,7 +28,7 @@ public:
 
 	mathfu::mat4 getViewProjection() const;
 
-	void postProccess(Shader* shader);
+	void postProccess(Shader* shader, bool blend = false, Mesh* mesh = nullptr);
 
 	void setFov(const f32& _fov);
 

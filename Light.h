@@ -3,6 +3,7 @@
 
 #include "helpers.h"
 #include "Node.h";
+#include "Shader.h"
 
 class Light : public Node
 {
@@ -26,6 +27,8 @@ public:
 
 	Light* setRadius(float radius);
 	float getRadius() const;
+
+	void setShaderParameters(Shader* lightShader) const;
 
 	virtual std::string getClass() const;
 

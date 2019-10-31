@@ -245,6 +245,12 @@ Mesh* Mesh::quad()
 	return out;
 }
 
+Mesh* Mesh::sphere()
+{
+	static Mesh* mesh = createSphere();
+	return mesh;
+}
+
 void Mesh::render(Camera* camera)
 {
 	this->draw(camera);

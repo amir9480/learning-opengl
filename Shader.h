@@ -26,6 +26,8 @@ public:
 
 	static Shader* simple();
 
+	static Shader* lightShader();
+
 public:
 protected:
     u32 mShaderProgram = 0;

@@ -21,7 +21,6 @@ public:
 	virtual void init() override;
 	virtual void destroy() override;
 	virtual void update() override;
-	void postProccessLight(Camera* camera, Node* light);
 	virtual void render() override;
 protected:
 	f32 mouseSens = 0.1f;
@@ -32,8 +31,6 @@ protected:
 	Camera* mainCamera;
 	Node* mainCameraController;
 	Scene* scene;
-	Shader* lightShader;
-
 };
 
 
@@ -66,8 +63,6 @@ void MyApp::init()
 	texture1 = new Texture("./assets/textures/wall.jpg");
 	texture2 = new Texture("./assets/textures/grass.jpg");
 
-	lightShader = new Shader("assets/shaders/simple_vertex.vert", "assets/shaders/light.frag");
-
 	scene->addNode(Mesh::createPlane(30)->setDiffuse(texture2)->setMaterial(shader1)->setName("plane_mesh")->setScale(mathfu::vec3(100, 100, 100)));
 	scene->addNode(Mesh::createSphere()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
 	scene->find("mesh2")->addChild(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh3")->setPosition(mathfu::vec3(5, 0, 5)));
@@ -79,8 +74,9 @@ void MyApp::init()
 	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh9")->setPosition(mathfu::vec3(-20, 1, -20)));
 	scene->addNode(mainCameraController);
 	scene->setMainCamera(reinterpret_cast<Camera*>(mainCameraController->findChild("mainCamera")));
-	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.98, 0.8, 0.7))->setPower(0.3)->rotate(mathfu::vec3(1, 0, 0), -45.0 * mathfu::kDegreesToRadians));
-	for (int i = 0; i < 40; i++) {
+	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0, 0, 1.0))->setPower(1.0)->rotate(mathfu::vec3(1, 0, 0), -45.0 * mathfu::kDegreesToRadians));
+	scene->addNode((new Light(Light::Type::Point))->setColor(mathfu::vec3(0.8, 0.95, 1.0))->setRadius(20)->setPosition(mathfu::vec3(0, 3, 10)));
+	for (int i = 0; i < 100; i++) {
 		scene->addNode((new Light(Light::Type::Point))->setColor(mathfu::vec3(randomNumber(0, 250)/250.0, randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0))->setRadius(randomNumber(5, 20))->setPosition(mathfu::vec3(randomNumber(-100, 100), randomNumber(1, 4), randomNumber(-100, 100))));
 	}
 }
@@ -92,7 +88,6 @@ void MyApp::destroy()
 	delete texture2;
 	delete mainCamera;
 	delete scene;
-	delete lightShader;
 }
 
 void MyApp::update()
@@ -164,31 +159,11 @@ void MyApp::update()
 	scene->find("mesh4")->rotate(mathfu::vec3(0, 1, 0), this->deltaTime);
 }
 
-void MyApp::postProccessLight(Camera* mainCamera, Node* node)
-{
-	if (node->getClass() == "Light") {
-		Light* light = reinterpret_cast<Light*>(node);
-
-		lightShader->setInt("lightType", (int)light->getType());
-		lightShader->setFloat3("lightColor", light->getColor());
-		lightShader->setFloat3("lightDirection", light->getForward());
-		lightShader->setFloat("lightPower", light->getPower());
-		lightShader->setFloat("lightRadius", light->getRadius());
-		lightShader->setFloat3("lightPosition", light->getPosition());
-		mainCamera->postProccess(lightShader);
-	}
-
-	for (auto& node : node->getChildren()) {
-		postProccessLight(mainCamera, node);
-	}
-}
-
 void MyApp::render()
 {
+	scene->preRender();
 	scene->render();
-	for (auto& node : scene->getNodes()) {
-		 postProccessLight(mainCamera, node);
-	}
+	scene->postRender();
     mainCamera->draw();
 }
 
