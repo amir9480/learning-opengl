@@ -28,6 +28,8 @@ public:
 
 	static Shader* lightShader();
 
+	static Shader* defaultMaterial();
+
 public:
 protected:
     u32 mShaderProgram = 0;

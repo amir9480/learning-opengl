@@ -81,7 +81,7 @@ Texture* Texture::createRaw(int _color, int _width, int _height)
 
 Texture* Texture::defaultTexture()
 {
-	static Texture* out = Texture::createRaw(0x33333300, 32, 32);
+	static Texture* out = Texture::createRaw(0xff00ffff, 32, 32);
 	return out;
 }
 

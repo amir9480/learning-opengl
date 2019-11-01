@@ -135,3 +135,9 @@ Shader* Shader::lightShader()
 	static Shader* lightShader = new Shader("assets/shaders/light_vertex.vert", "assets/shaders/light.frag");
 	return lightShader;
 }
+
+Shader* Shader::defaultMaterial()
+{
+	static Shader* defaultMaterial = new Shader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
+	return defaultMaterial;
+}

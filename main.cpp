@@ -63,18 +63,18 @@ void MyApp::init()
 	texture1 = new Texture("./assets/textures/wall.jpg");
 	texture2 = new Texture("./assets/textures/grass.jpg");
 
-	scene->addNode(Mesh::createPlane(30)->setDiffuse(texture2)->setMaterial(shader1)->setName("plane_mesh")->setScale(mathfu::vec3(100, 100, 100)));
-	scene->addNode(Mesh::createSphere()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
-	scene->find("mesh2")->addChild(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh3")->setPosition(mathfu::vec3(5, 0, 5)));
-	scene->find("mesh3")->addChild(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh4")->setPosition(mathfu::vec3(-5, 0, 0)));
-	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh5")->setPosition(mathfu::vec3(-20, 1, 1)));
-	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh6")->setPosition(mathfu::vec3(20, 1, 20))->rotate(mathfu::vec3(0, 1, 0), 45));
-	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh7")->setPosition(mathfu::vec3(-20, 1, 20)));
-	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh8")->setPosition(mathfu::vec3(20, 1, -20)));
-	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setMaterial(shader1)->setName("mesh9")->setPosition(mathfu::vec3(-20, 1, -20)));
+	scene->addNode(Mesh::createPlane(300)->setDiffuse(texture2)->setName("plane_mesh")->setScale(mathfu::vec3(1000, 1000, 1000)));
+	scene->addNode(Mesh::createSphere()->setDiffuse(texture1)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
+	scene->find("mesh2")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh3")->setPosition(mathfu::vec3(5, 0, 5)));
+	scene->find("mesh3")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh4")->setPosition(mathfu::vec3(-5, 0, 0)));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh5")->setPosition(mathfu::vec3(-20, 1, 1)));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh6")->setPosition(mathfu::vec3(20, 1, 20))->rotate(mathfu::vec3(0, 1, 0), 45));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh7")->setPosition(mathfu::vec3(-20, 1, 20)));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh8")->setPosition(mathfu::vec3(20, 1, -20)));
+	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh9")->setPosition(mathfu::vec3(-20, 1, -20)));
 	scene->addNode(mainCameraController);
 	scene->setMainCamera(reinterpret_cast<Camera*>(mainCameraController->findChild("mainCamera")));
-	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0, 0, 1.0))->setPower(1.0)->rotate(mathfu::vec3(1, 0, 0), -45.0 * mathfu::kDegreesToRadians));
+	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.9, 0.95, 1.0))->setPower(0.4)->rotate(mathfu::vec3(1, 0, 0), -45.0 * mathfu::kDegreesToRadians));
 	scene->addNode((new Light(Light::Type::Point))->setColor(mathfu::vec3(0.8, 0.95, 1.0))->setRadius(20)->setPosition(mathfu::vec3(0, 3, 10)));
 	for (int i = 0; i < 100; i++) {
 		scene->addNode((new Light(Light::Type::Point))->setColor(mathfu::vec3(randomNumber(0, 250)/250.0, randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0))->setRadius(randomNumber(5, 20))->setPosition(mathfu::vec3(randomNumber(-100, 100), randomNumber(1, 4), randomNumber(-100, 100))));

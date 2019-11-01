@@ -72,7 +72,10 @@ void main()
 		att *= att;
 		diffuse *= max(0.0, dot(normalVec, lightToPixel)) * lightColor * att * lightPower;
 		vec3 reflectDir = reflect(-lightToPixel, normalVec);
-		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel * lightColor * att * lightPower;
+		vec3 camToWorld = worldPos - camPos;
+		if (length(camToWorld) < lightRadius * 5) {
+			specular = clamp((1 - length(camToWorld) / (lightRadius * 5)) * vec3(pow(max(0, dot(normalize(camToWorld), reflectDir)), 64)) * albedoPixel * lightColor * att * lightPower, 0, 1);
+		}
 	}
 
 

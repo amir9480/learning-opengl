@@ -42,7 +42,7 @@ float Light::getPower() const
 Light* Light::setRadius(float radius)
 {
 	mRadius = radius;
-	mScale = mathfu::vec3(0.8, 0.8, 0.8) * radius;
+	mScale = mathfu::vec3(1.0, 1.0, 1.0) * radius;
 	return this;
 }
 

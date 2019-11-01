@@ -6,9 +6,13 @@ Mesh::Mesh():
 	mIndicesCount(0),
 	mVAO(0),
 	mVBO(0),
+	mInstanceVBO(0),
 	mEBO(0),
 	mCullMode(Mesh::CullMode::Back)
-{}
+{
+	mMaterial = Shader::defaultMaterial();
+	mDiffuse = Texture::defaultTexture();
+}
 
 Mesh::Mesh(std::vector<Vertex> _vertices, std::vector<u32> _indicies)
 	:Mesh()
@@ -131,10 +135,12 @@ void Mesh::draw(Camera* camera)
 {
 	if (mMaterial && camera) {
 		mMaterial->use();
+		mMaterial->setBool("instancing", false);
 		mMaterial->setMatrix("MVP", this->getTransformMatrix() * camera->getViewProjection());
 		mMaterial->setMatrix("worldMatrix", this->getTransformMatrix());
 		mMaterial->setMatrix("viewMatrix", camera->getView());
 		mMaterial->setMatrix("projectionMatrix", camera->getProjection());
+		mMaterial->setMatrix("viewProjectionMatrix", camera->getViewProjection());
 		mMaterial->setTexture("diffuse", mDiffuse, 0);
 	}
 
@@ -151,16 +157,54 @@ void Mesh::draw(Camera* camera)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+void Mesh::drawInstanced(Camera* camera, InstanceData* instanceData, u32 count)
+{
+	if (mMaterial && camera) {
+		mMaterial->use();
+		mMaterial->setBool("instancing", true);
+		mMaterial->setMatrix("MVP", this->getTransformMatrix() * camera->getViewProjection());
+		mMaterial->setMatrix("worldMatrix", this->getTransformMatrix());
+		mMaterial->setMatrix("viewMatrix", camera->getView());
+		mMaterial->setMatrix("projectionMatrix", camera->getProjection());
+		mMaterial->setMatrix("viewProjectionMatrix", camera->getViewProjection());
+		mMaterial->setTexture("diffuse", mDiffuse, 0);
+	}
+
+	glBindVertexArray(mVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData) * count, (void*)instanceData, GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
+	if (mCullMode == CullMode::None) {
+		glDisable(GL_CULL_FACE);
+	}
+	else {
+		glEnable(GL_CULL_FACE);
+		glCullFace(mCullMode == CullMode::Front ? GL_FRONT : GL_BACK);
+	}
+	glDrawElementsInstanced(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0, count);
+	//glDrawElements(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void Mesh::drawInstanced(Camera* camera, std::vector<InstanceData> instanceData)
+{
+	drawInstanced(camera, (InstanceData*)instanceData.data(), instanceData.size());
+}
+
 void Mesh::destroy()
 {
 	glDeleteVertexArrays(1, &mVAO);
 	glDeleteBuffers(1, &mVBO);
+	glDeleteBuffers(1, &mInstanceVBO);
 	glDeleteBuffers(1, &mEBO);
 
 	mVerticesCount = 0;
 	mIndicesCount = 0;
 	mVAO = 0;
 	mVBO = 0;
+	mInstanceVBO = 0;
 	mEBO = 0;
 }
 
@@ -208,6 +252,7 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 
 	glGenVertexArrays(1, &mVAO);
 	glGenBuffers(1, &mVBO);
+	glGenBuffers(1, &mInstanceVBO);
 	glGenBuffers(1, &mEBO);
 	glBindVertexArray(mVAO);
 
@@ -218,13 +263,21 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesCount * sizeof(u32), (void*)_indices, GL_STATIC_DRAW);
 
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
+	glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
+	static InstanceData fakeInstanceData;
+	glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData), (void*)(&fakeInstanceData), GL_DYNAMIC_DRAW);
+	for (u32 i = 0; i < 8; i++) {
+		glEnableVertexAttribArray(3 + i);
+		glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, 32 * sizeof(float), (void*)(4 * i * sizeof(float)));
+		glVertexAttribDivisor(3 + i, 1);
+	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -248,6 +301,12 @@ Mesh* Mesh::quad()
 Mesh* Mesh::sphere()
 {
 	static Mesh* mesh = createSphere();
+	return mesh;
+}
+
+Mesh* Mesh::cube()
+{
+	static Mesh* mesh = createCube();
 	return mesh;
 }
 

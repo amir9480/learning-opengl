@@ -11,12 +11,20 @@ struct Vertex
 	f32 nx, ny, nz;
 	f32 u, v;
 
-	Vertex(f32 _px, f32 _py, f32 _pz,
+	Vertex(f32 _px = 0.0f, f32 _py = 0.0f, f32 _pz = 0.0f,
 		f32 _u = 0.0f, f32 _v = 0.0f,
 		f32 _nx = 0.0f, f32 _ny = 0.0f, f32 _nz = 0.0f) :
 		px(_px), py(_py), pz(_pz),
 		nx(_nx), ny(_ny), nz(_nz),
 		u(_u), v(_v) {}
+};
+
+struct InstanceData
+{
+	mathfu::mat4 world;
+
+	InstanceData(mathfu::mat4 _world = mathfu::mat4::Identity()) :
+		world(_world) {}
 };
 
 class Camera;
@@ -44,6 +52,10 @@ public:
 	
 	void draw(Camera* camera = nullptr);
 
+	void drawInstanced(Camera* camera, std::vector<InstanceData> instanceData);
+
+	void drawInstanced(Camera* camera, InstanceData* instanceData, u32 count);
+
 	void destroy();
 
 	void setCullMode(CullMode cullmode = CullMode::Back);
@@ -56,6 +68,8 @@ public:
 
 	static Mesh* sphere();
 
+	static Mesh* cube();
+
 	virtual void render(Camera* camera = nullptr);
 
 	Mesh* setMaterial(Shader* material);
@@ -66,6 +80,7 @@ public:
 private:
 	u32		 mVAO;
 	u32		 mVBO;
+	u32		 mInstanceVBO;
 	u32		 mEBO;
 	u32		 mVerticesCount;
 	u32		 mIndicesCount;
