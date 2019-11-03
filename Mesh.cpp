@@ -37,14 +37,14 @@ Mesh* Mesh::createCube()
 		// back face
 		Vertex(-1.0f, -1.0f, -1.0f,  0.0f, 0.0f, 0.0f,  0.0f, -1.0f), // bottom-left
 		Vertex(1.0f,   1.0f, -1.0f,  1.0f, 1.0f, 0.0f,  0.0f, -1.0f), // top-right
-		Vertex(1.0f,  -1.0f, -1.0f,  1.0f, 0.0f, 0.0f,  0.0f, -1.0f), // bottom-right   
+		Vertex(1.0f,  -1.0f, -1.0f,  1.0f, 0.0f, 0.0f,  0.0f, -1.0f), // bottom-right
 		Vertex(-1.0f,  1.0f, -1.0f,  0.0f, 1.0f, 0.0f,  0.0f, -1.0f), // top-left
 		// front face
 		Vertex(-1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 0.0f,  0.0f,  1.0f), // bottom-left
 		Vertex(+1.0f, -1.0f,  1.0f,  1.0f, 0.0f, 0.0f,  0.0f,  1.0f), // bottom-right
 		Vertex(+1.0f,  1.0f,  1.0f,  1.0f, 1.0f, 0.0f,  0.0f,  1.0f), // top-right
 		Vertex(-1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 0.0f,  0.0f,  1.0f), // top-left
-		// left face		
+		// left face
 		Vertex(-1.0f,  1.0f,  1.0f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f), // top-right
 		Vertex(-1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 1.0f,  0.0f,  0.0f), // top-left
 		Vertex(-1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 1.0f,  0.0f,  0.0f), // bottom-left
@@ -52,8 +52,8 @@ Mesh* Mesh::createCube()
 		// right face
 		Vertex(+1.0f,  1.0f,  1.0f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f), // top-left
 		Vertex(+1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 1.0f,  0.0f,  0.0f), // bottom-right
-		Vertex(+1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 1.0f,  0.0f,  0.0f), // top-right     
-		Vertex(+1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 1.0f,  0.0f,  0.0f), // bottom-left     
+		Vertex(+1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 1.0f,  0.0f,  0.0f), // top-right
+		Vertex(+1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 1.0f,  0.0f,  0.0f), // bottom-left
 		// bottom face
 		Vertex(-1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f, -1.0f,  0.0f), // top-right
 		Vertex(+1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 0.0f, -1.0f,  0.0f), // top-left
@@ -62,8 +62,8 @@ Mesh* Mesh::createCube()
 		// top face
 		Vertex(-1.0f,  1.0f, -1.0f,  0.0f, 1.0f, 0.0f,  1.0f,  0.0f), // top-left
 		Vertex(+1.0f,  1.0f,  1.0f,  1.0f, 0.0f, 0.0f,  1.0f,  0.0f), // bottom-right
-		Vertex(+1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 0.0f,  1.0f,  0.0f), // top-right    
-		Vertex(-1.0f,  1.0f,  1.0f,  0.0f, 0.0f, 0.0f,  1.0f,  0.0f)  // bottom-left    
+		Vertex(+1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 0.0f,  1.0f,  0.0f), // top-right
+		Vertex(-1.0f,  1.0f,  1.0f,  0.0f, 0.0f, 0.0f,  1.0f,  0.0f)  // bottom-left
 		}, { 1, 0, 2, 0, 1, 3, 5, 4, 6, 6, 4, 7, 9, 8, 10, 10, 8, 11, 13, 12, 14, 12, 13, 15, 17, 16, 18, 18, 16, 19, 21, 20, 22, 20, 21, 23});
 }
 
@@ -113,7 +113,7 @@ Mesh* Mesh::createSphere(u32 rows, u32 cols)
 				c * colStep,
 				tempNorm.x, tempNorm.y, tempNorm.z
 			));
-			
+
 			currentRow = r * cols;
 			nextRow = (r+1) * cols;
 
@@ -131,17 +131,22 @@ Mesh* Mesh::createSphere(u32 rows, u32 cols)
 	return new Mesh(vertices, indicies);
 }
 
-void Mesh::draw(Camera* camera)
+void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count)
 {
 	if (mMaterial && camera) {
 		mMaterial->use();
-		mMaterial->setBool("instancing", false);
+		mMaterial->setBool("instancing", instanceData != nullptr);
 		mMaterial->setMatrix("MVP", this->getTransformMatrix() * camera->getViewProjection());
 		mMaterial->setMatrix("worldMatrix", this->getTransformMatrix());
 		mMaterial->setMatrix("viewMatrix", camera->getView());
 		mMaterial->setMatrix("projectionMatrix", camera->getProjection());
 		mMaterial->setMatrix("viewProjectionMatrix", camera->getViewProjection());
-		mMaterial->setTexture("diffuse", mDiffuse, 0);
+		mMaterial->setTexture("diffuse", mDiffuse);
+	}
+
+	if (instanceData) {
+		glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData) * count, (void*)instanceData, GL_DYNAMIC_DRAW);
 	}
 
 	glBindVertexArray(mVAO);
@@ -152,45 +157,19 @@ void Mesh::draw(Camera* camera)
 		glEnable(GL_CULL_FACE);
 		glCullFace(mCullMode == CullMode::Front ? GL_FRONT : GL_BACK);
 	}
-	glDrawElements(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0);
+	if (instanceData) {
+		glDrawElementsInstanced(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0, count);
+	} else {
+		glDrawElements(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0);
+	}
 	glBindVertexArray(0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Mesh::drawInstanced(Camera* camera, InstanceData* instanceData, u32 count)
+void Mesh::draw(Camera* camera, std::vector<InstanceData> instanceData)
 {
-	if (mMaterial && camera) {
-		mMaterial->use();
-		mMaterial->setBool("instancing", true);
-		mMaterial->setMatrix("MVP", this->getTransformMatrix() * camera->getViewProjection());
-		mMaterial->setMatrix("worldMatrix", this->getTransformMatrix());
-		mMaterial->setMatrix("viewMatrix", camera->getView());
-		mMaterial->setMatrix("projectionMatrix", camera->getProjection());
-		mMaterial->setMatrix("viewProjectionMatrix", camera->getViewProjection());
-		mMaterial->setTexture("diffuse", mDiffuse, 0);
-	}
-
-	glBindVertexArray(mVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData) * count, (void*)instanceData, GL_DYNAMIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-	if (mCullMode == CullMode::None) {
-		glDisable(GL_CULL_FACE);
-	}
-	else {
-		glEnable(GL_CULL_FACE);
-		glCullFace(mCullMode == CullMode::Front ? GL_FRONT : GL_BACK);
-	}
-	glDrawElementsInstanced(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0, count);
-	//glDrawElements(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
-
-void Mesh::drawInstanced(Camera* camera, std::vector<InstanceData> instanceData)
-{
-	drawInstanced(camera, (InstanceData*)instanceData.data(), instanceData.size());
+	draw(camera, (InstanceData*)instanceData.data(), instanceData.size());
 }
 
 void Mesh::destroy()
@@ -271,8 +250,7 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
 	glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
-	static InstanceData fakeInstanceData;
-	glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData), (void*)(&fakeInstanceData), GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData), (void*)0, GL_DYNAMIC_DRAW);
 	for (u32 i = 0; i < 8; i++) {
 		glEnableVertexAttribArray(3 + i);
 		glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, 32 * sizeof(float), (void*)(4 * i * sizeof(float)));

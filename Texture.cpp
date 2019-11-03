@@ -27,7 +27,7 @@ Texture::Texture(int _width, int _height, bool depth)
 	mHeight = _height;
 	glGenTextures(1, &mTexture);
 	glBindTexture(GL_TEXTURE_2D, mTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, depth ? GL_DEPTH_COMPONENT : GL_RGBA, mWidth, mHeight, 0, depth ? GL_DEPTH_COMPONENT : GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, depth ? GL_DEPTH_COMPONENT32F : GL_RGBA, mWidth, mHeight, 0, depth ? GL_DEPTH_COMPONENT : GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	if (depth) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

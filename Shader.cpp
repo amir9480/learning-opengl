@@ -111,8 +111,11 @@ void Shader::setMatrix(std::string name, mathfu::mat4 value)
     glUniformMatrix4fv(glGetUniformLocation(mShaderProgram, name.c_str()), 1, false, (float*)&value);
 }
 
-void Shader::setTexture(std::string name, const Texture* value, u32 index)
+void Shader::setTexture(std::string name, const Texture* value)
 {
+	static u32 index;
+	mTextures[name] = value;
+	index = std::distance(mTextures.begin(), mTextures.find(name));
 	value->use(index);
 	setInt(name, index);
 }

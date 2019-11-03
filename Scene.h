@@ -4,6 +4,7 @@
 #include "Node.h"
 #include "helpers.h"
 #include "Camera.h"
+#include "Light.h"
 
 class Scene
 {
@@ -30,9 +31,12 @@ protected:
 	void renderLights(Node* node);
 
 protected:
-	std::string				mName;
-	std::list<Node*>		mNodes;
-	Camera*					mMainCamera;
+	std::string						mName;
+	std::list<Node*>				mNodes;
+	Camera*							mMainCamera;
+	std::vector<Light*>				mLights;
+	std::vector<InstanceData>		mLightInstances;
+	std::vector<LightInstanceData>	mLightDataInstances;
 };
 
 #endif // _SCENE_H_

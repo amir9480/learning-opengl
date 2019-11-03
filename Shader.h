@@ -20,7 +20,7 @@ public:
     void setFloat3(std::string name, float value1, float value2, float value3);
     void setFloat4(std::string name, float value1, float value2, float value3, float value4);
     void setMatrix(std::string name, mathfu::mat4 value);
-	void setTexture(std::string name, const Texture* value, u32 index);
+	void setTexture(std::string name, const Texture* value);
 
     void use();
 
@@ -30,9 +30,9 @@ public:
 
 	static Shader* defaultMaterial();
 
-public:
 protected:
     u32 mShaderProgram = 0;
+	std::map<std::string, const Texture*> mTextures;
 };
 
 

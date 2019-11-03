@@ -50,11 +50,9 @@ public:
 
 	static Mesh* createSphere(u32 rows = 12, u32 cols = 12);
 	
-	void draw(Camera* camera = nullptr);
+	void draw(Camera* camera = nullptr, InstanceData* instanceData = nullptr, u32 count = 0);
 
-	void drawInstanced(Camera* camera, std::vector<InstanceData> instanceData);
-
-	void drawInstanced(Camera* camera, InstanceData* instanceData, u32 count);
+	void draw(Camera* camera, std::vector<InstanceData> instanceData);
 
 	void destroy();
 

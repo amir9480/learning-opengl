@@ -5,6 +5,14 @@
 #include "Node.h";
 #include "Shader.h"
 
+struct LightInstanceData
+{
+	mathfu::vec3 position = mathfu::vec3(0, 0, 0);
+	mathfu::vec3 color = mathfu::vec3(1, 1, 1);
+	float power = 1.0;
+	float radius = 10.0f;
+};
+
 class Light : public Node
 {
 public:
@@ -31,6 +39,8 @@ public:
 	void setShaderParameters(Shader* lightShader) const;
 
 	virtual std::string getClass() const;
+
+	LightInstanceData toLightData() const;
 
 protected:
 	Type mType;

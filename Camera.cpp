@@ -98,10 +98,10 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh)
 		glBindTexture(GL_TEXTURE_2D, mPostProccessTexture->mTexture);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPostProccessTexture->mTexture, 0);
 	}
-	shader->setTexture("final", mFinalImage, 0);
-	shader->setTexture("albedo", mGBuffer["albedo"], 1);
-	shader->setTexture("normal", mGBuffer["normal"], 2);
-	shader->setTexture("depth", mDepth, 3);
+	shader->setTexture("final", mFinalImage);
+	shader->setTexture("albedo", mGBuffer["albedo"]);
+	shader->setTexture("normal", mGBuffer["normal"]);
+	shader->setTexture("depth", mDepth);
 	if (mesh) {
 		mesh->draw();
 	} else {
@@ -116,7 +116,7 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh)
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFinalImage->mTexture, 0);
 		glFrontFace(GL_CCW);
 		Shader::simple()->use();
-		Shader::simple()->setTexture("screen", mPostProccessTexture, 0);
+		Shader::simple()->setTexture("screen", mPostProccessTexture);
 		Mesh::quad()->draw();
 	}
 }
@@ -168,7 +168,7 @@ void Camera::draw() const
 	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// Shader::simple()->setTexture("screen", getGbuffer("albedo"), 0);
-	Shader::simple()->setTexture("screen", mFinalImage, 0);
+	Shader::simple()->setTexture("screen", mFinalImage);
 	Mesh::quad()->draw();
 }
 

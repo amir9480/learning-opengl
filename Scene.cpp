@@ -39,14 +39,14 @@ void Scene::renderCallback(Camera* _mainCamera)
 	for (auto node : mNodes) {
 		node->render(_mainCamera);
 	}
-	
+
 	static bool initialized = false;
 	static std::vector<InstanceData> idata;
 	static std::vector<mathfu::mat4> tempData;
 	if (initialized == false) {
-		for (int i = 0; i < 50000; i++) {
+		for (int i = 0; i < 1000; i++) {
 			f32 rs = randomNumber(1, 3);
-			tempData.push_back(mathfu::mat4::Transform(mathfu::vec3(randomNumber(-1000, 1000), randomNumber(1, 5), randomNumber(-1000, 1000)), mathfu::mat3::Identity(), mathfu::vec3(rs, rs, rs)).Transpose());
+			tempData.push_back(mathfu::mat4::Transform(mathfu::vec3(randomNumber(-100, 100), randomNumber(1, 5), randomNumber(-100, 100)), mathfu::mat3::Identity(), mathfu::vec3(rs, rs, rs)).Transpose());
 			idata.push_back(InstanceData(tempData[i]));
 		}
 		initialized = true;
@@ -54,7 +54,7 @@ void Scene::renderCallback(Camera* _mainCamera)
 	static Mesh* sphere = Mesh::createSphere();
 	sphere->setPosition(mathfu::vec3(0, 2, 10));
 	sphere->setScale(mathfu::vec3(5, 5, 5));
-	sphere->drawInstanced(_mainCamera, idata);
+	sphere->draw(_mainCamera, idata);
 }
 
 void Scene::postRender()
@@ -98,12 +98,21 @@ void Scene::renderLights(Node* node)
 		if (light->getType() == Light::Directional) {
 			lightShader->setMatrix("MVP", mathfu::mat4::Identity());
 			mMainCamera->postProccess(lightShader, true);
-		}
-		else {
+		} else {
+			// if (std::find(mLights.begin(), mLights.end(), light) != mLights.end()) {
+			// 	mLights.push_back(light);
+			// 	mLightInstances.push_back(InstanceData(light->getTransformMatrix()));
+			// 	mLightDataInstances.push_back(light->toLightData());
+			// }
 			glFrontFace(GL_CW);
 			lightShader->setMatrix("MVP", light->getTransformMatrix() * mMainCamera->getViewProjection());
 			mMainCamera->postProccess(lightShader, true, Mesh::sphere());
 			glFrontFace(GL_CCW);
 		}
 	}
+
+	//glFrontFace(GL_CW);
+	//mLights[0]->setShaderParameters(lightShader);
+	//mMainCamera->postProccess(lightShader, true, Mesh::sphere());
+	//glFrontFace(GL_CCW);
 }

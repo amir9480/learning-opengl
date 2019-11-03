@@ -65,3 +65,13 @@ std::string Light::getClass() const
 {
 	return "Light";
 }
+
+LightInstanceData Light::toLightData() const
+{
+	static LightInstanceData out;
+	out.position = mPosition;
+	out.color = mColor;
+	out.power = mPower;
+	out.radius = mRadius;
+	return out;
+}
