@@ -76,7 +76,7 @@ mathfu::mat4 Camera::getViewProjection() const
 	return mViewProjection;
 }
 
-void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh)
+void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* instanceData, u32 count, u32 size)
 {
 	shader->use();
 	shader->setFloat3("camPos", this->getPosition());
@@ -103,7 +103,8 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh)
 	shader->setTexture("normal", mGBuffer["normal"]);
 	shader->setTexture("depth", mDepth);
 	if (mesh) {
-		mesh->draw();
+		mesh->setMaterial(shader);
+		mesh->draw(this, instanceData, count, size);
 	} else {
 		Mesh::quad()->draw();
 	}

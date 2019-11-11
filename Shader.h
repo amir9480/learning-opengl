@@ -21,6 +21,7 @@ public:
     void setFloat4(std::string name, float value1, float value2, float value3, float value4);
     void setMatrix(std::string name, mathfu::mat4 value);
 	void setTexture(std::string name, const Texture* value);
+	void setCustom(std::string name, void* _data, u32 _size);
 
     void use();
 
@@ -33,6 +34,7 @@ public:
 protected:
     u32 mShaderProgram = 0;
 	std::map<std::string, const Texture*> mTextures;
+	std::map<std::string, u32> mBufferDatas;
 };
 
 

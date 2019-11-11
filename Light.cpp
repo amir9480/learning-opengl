@@ -53,6 +53,7 @@ float Light::getRadius() const
 
 void Light::setShaderParameters(Shader* lightShader) const
 {
+	lightShader->setBool("instancing", false);
 	lightShader->setInt("lightType", (int)this->getType());
 	lightShader->setFloat3("lightColor", this->getColor());
 	lightShader->setFloat3("lightDirection", this->getForward());
@@ -69,7 +70,9 @@ std::string Light::getClass() const
 LightInstanceData Light::toLightData() const
 {
 	static LightInstanceData out;
+	out.world = this->getTransformMatrix();
 	out.position = mPosition;
+	out.direction = mathfu::vec3(0, 0, 0);
 	out.color = mColor;
 	out.power = mPower;
 	out.radius = mRadius;

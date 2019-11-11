@@ -35,7 +35,6 @@ protected:
 	std::list<Node*>				mNodes;
 	Camera*							mMainCamera;
 	std::vector<Light*>				mLights;
-	std::vector<InstanceData>		mLightInstances;
 	std::vector<LightInstanceData>	mLightDataInstances;
 };
 

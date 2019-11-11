@@ -76,8 +76,8 @@ void MyApp::init()
 	scene->setMainCamera(reinterpret_cast<Camera*>(mainCameraController->findChild("mainCamera")));
 	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.9, 0.95, 1.0))->setPower(0.4)->rotate(mathfu::vec3(1, 0, 0), -45.0 * mathfu::kDegreesToRadians));
 	scene->addNode((new Light(Light::Type::Point))->setColor(mathfu::vec3(0.8, 0.95, 1.0))->setRadius(20)->setPosition(mathfu::vec3(0, 3, 10)));
-	for (int i = 0; i < 100; i++) {
-		scene->addNode((new Light(Light::Type::Point))->setColor(mathfu::vec3(randomNumber(0, 250)/250.0, randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0))->setRadius(randomNumber(5, 20))->setPosition(mathfu::vec3(randomNumber(-100, 100), randomNumber(1, 4), randomNumber(-100, 100))));
+	for (int i = 0; i < 500; i++) {
+		scene->addNode((new Light(Light::Type::Point))->setColor(mathfu::vec3(randomNumber(0, 250)/250.0, randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0))->setRadius(randomNumber(5, 20))->setPosition(mathfu::vec3(randomNumber(-500, 500), randomNumber(1, 4), randomNumber(-500, 500))));
 	}
 }
 

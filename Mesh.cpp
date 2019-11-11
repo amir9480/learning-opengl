@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include "Light.h"
 
 Mesh::Mesh():
 	Node(),
@@ -14,16 +15,16 @@ Mesh::Mesh():
 	mDiffuse = Texture::defaultTexture();
 }
 
-Mesh::Mesh(std::vector<Vertex> _vertices, std::vector<u32> _indicies)
+Mesh::Mesh(std::vector<Vertex> _vertices, std::vector<u32> _indicies, bool lightMesh)
 	:Mesh()
 {
-	this->updateMesh(_vertices.data(), _vertices.size(), _indicies.data(), _indicies.size());
+	this->updateMesh(_vertices.data(), _vertices.size(), _indicies.data(), _indicies.size(), lightMesh);
 }
 
-Mesh::Mesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount)
+Mesh::Mesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount, bool lightMesh)
 	: Mesh()
 {
-	this->updateMesh(_vertices, _verticesCount, _indices, _indicesCount);
+	this->updateMesh(_vertices, _verticesCount, _indices, _indicesCount, lightMesh);
 }
 
 Mesh::~Mesh()
@@ -81,7 +82,7 @@ Mesh* Mesh::createPlane(u32 _uvRepeat)
 	);
 }
 
-Mesh* Mesh::createSphere(u32 rows, u32 cols)
+Mesh* Mesh::createSphere(u32 rows, u32 cols, bool lightMesh)
 {
 	std::vector<Vertex> vertices;
 	std::vector<u32> indicies;
@@ -128,10 +129,10 @@ Mesh* Mesh::createSphere(u32 rows, u32 cols)
 			}
 		}
 	}
-	return new Mesh(vertices, indicies);
+	return new Mesh(vertices, indicies, lightMesh);
 }
 
-void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count)
+void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count, u32 size)
 {
 	if (mMaterial && camera) {
 		mMaterial->use();
@@ -144,9 +145,13 @@ void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count)
 		mMaterial->setTexture("diffuse", mDiffuse);
 	}
 
+	if (size == 0) {
+		size = sizeof(InstanceData);
+	}
+
 	if (instanceData) {
 		glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData) * count, (void*)instanceData, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, size * count, (void*)instanceData, GL_DYNAMIC_DRAW);
 	}
 
 	glBindVertexArray(mVAO);
@@ -192,12 +197,12 @@ void Mesh::setCullMode(CullMode cullmode)
 	mCullMode = cullmode;
 }
 
-void Mesh::updateMesh(const std::vector<Vertex>& _vertices, const std::vector<u32>& _indices)
+void Mesh::updateMesh(const std::vector<Vertex>& _vertices, const std::vector<u32>& _indices, bool lightMesh)
 {
-	updateMesh(_vertices.data(), _vertices.size(), _indices.data(), _indices.size());
+	updateMesh(_vertices.data(), _vertices.size(), _indices.data(), _indices.size(), lightMesh);
 }
 
-void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount)
+void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount, bool lightMesh)
 {
 	if (this->mVerticesCount != 0) {
 		this->destroy();
@@ -250,11 +255,31 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
 	glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData), (void*)0, GL_DYNAMIC_DRAW);
-	for (u32 i = 0; i < 8; i++) {
-		glEnableVertexAttribArray(3 + i);
-		glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, 32 * sizeof(float), (void*)(4 * i * sizeof(float)));
-		glVertexAttribDivisor(3 + i, 1);
+	if (lightMesh) {
+		std::cout << offsetof(LightInstanceData, position) << "," <<sizeof(mathfu::vec3) <<"," <<sizeof(float)*3 << std::endl;
+		glBufferData(GL_ARRAY_BUFFER, sizeof(LightInstanceData), (void*)0, GL_DYNAMIC_DRAW);
+		for (u32 i = 0; i < 4; i++) {
+			glEnableVertexAttribArray(3 + i);
+			glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(4 * i * sizeof(float)));
+			glVertexAttribDivisor(3 + i, 1);
+		}
+		for (u32 i = 0; i < 3; i++) {
+			glEnableVertexAttribArray(7 + i);
+			glVertexAttribPointer(7 + i, 3, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, position)) + (i * sizeof(mathfu::vec3))));
+			glVertexAttribDivisor(7 + i, 1);
+		}
+		for (u32 i = 0; i < 2; i++) {
+			glEnableVertexAttribArray(10 + i);
+			glVertexAttribPointer(10 + i, 1, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, power)) + (i * sizeof(float))));
+			glVertexAttribDivisor(10 + i, 1);
+		}
+	}else {
+		glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData), (void*)0, GL_DYNAMIC_DRAW);
+		for (u32 i = 0; i < 4; i++) {
+			glEnableVertexAttribArray(3 + i);
+			glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (void*)(4 * i * sizeof(float)));
+			glVertexAttribDivisor(3 + i, 1);
+		}
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -264,7 +289,7 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 
 Mesh* Mesh::quad()
 {
-	static Mesh* out = new Mesh({
+	static Mesh* out = (new Mesh({
 		Vertex(-1.0f,  1.0f, 0.0f, 0.0f, 1.0f),
 		Vertex(-1.0f, -1.0f, 0.0f, 0.0f, 0.0f),
 		Vertex( 1.0f,  1.0f, 0.0f, 1.0f, 1.0f),
@@ -272,19 +297,19 @@ Mesh* Mesh::quad()
 	}, {
 		0, 1, 2,
 		2, 1, 3
-	});
+	}))->setMaterial(nullptr);
 	return out;
 }
 
 Mesh* Mesh::sphere()
 {
-	static Mesh* mesh = createSphere();
+	static Mesh* mesh = createSphere()->setMaterial(nullptr);
 	return mesh;
 }
 
 Mesh* Mesh::cube()
 {
-	static Mesh* mesh = createCube();
+	static Mesh* mesh = createCube()->setMaterial(nullptr);
 	return mesh;
 }
 
@@ -311,4 +336,9 @@ Mesh* Mesh::setDiffuse(Texture* texture)
 std::string Mesh::getClass() const
 {
 	return "Mesh";
+}
+
+u32 Mesh::getInstanceVBO() const
+{
+	return mInstanceVBO;
 }

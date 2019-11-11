@@ -120,6 +120,22 @@ void Shader::setTexture(std::string name, const Texture* value)
 	setInt(name, index);
 }
 
+void Shader::setCustom(std::string name, void* _data, u32 _size)
+{
+	if (mBufferDatas.find(name) == mBufferDatas.end()) {
+		u32 uniformBuffer;
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		glGenBuffers(1, &uniformBuffer);
+		mBufferDatas[name] = uniformBuffer;
+	}
+	glBindBuffer(GL_UNIFORM_BUFFER, mBufferDatas[name]);
+	glBufferData(GL_UNIFORM_BUFFER, _size, _data, GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	u32 index = std::distance(mTextures.begin(), mTextures.find(name));
+	use();
+	setInt(name, index);
+}
+
 void Shader::use()
 {
     if (mShaderProgram != 0) {

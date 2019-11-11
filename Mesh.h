@@ -40,17 +40,17 @@ public:
 	};
 public:
 	Mesh();
-	Mesh(std::vector<Vertex> _vertices, std::vector<u32> _indices);
-	Mesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount);
+	Mesh(std::vector<Vertex> _vertices, std::vector<u32> _indices, bool lightMesh = false);
+	Mesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount, bool lightMesh = false);
 	virtual ~Mesh();
 
 	static Mesh* createCube();
 
 	static Mesh* createPlane(u32 _uvRepeat = 1);
 
-	static Mesh* createSphere(u32 rows = 12, u32 cols = 12);
+	static Mesh* createSphere(u32 rows = 12, u32 cols = 12, bool lightMesh = false);
 	
-	void draw(Camera* camera = nullptr, InstanceData* instanceData = nullptr, u32 count = 0);
+	void draw(Camera* camera = nullptr, InstanceData* instanceData = nullptr, u32 count = 0, u32 size = 0);
 
 	void draw(Camera* camera, std::vector<InstanceData> instanceData);
 
@@ -58,9 +58,9 @@ public:
 
 	void setCullMode(CullMode cullmode = CullMode::Back);
 
-	void updateMesh(const std::vector<Vertex>& _vertices, const std::vector<u32>& _indices);
+	void updateMesh(const std::vector<Vertex>& _vertices, const std::vector<u32>& _indices, bool lightMesh = false);
 
-	void updateMesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount);
+	void updateMesh(const Vertex* _vertices, const u32& _verticesCount, const u32* _indices, const u32& _indicesCount, bool lightMesh = false);
 
 	static Mesh* quad();
 
@@ -75,6 +75,8 @@ public:
 	Mesh* setDiffuse(Texture* texture);
 
 	virtual std::string getClass() const;
+
+	u32 getInstanceVBO() const;
 private:
 	u32		 mVAO;
 	u32		 mVBO;

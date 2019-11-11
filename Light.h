@@ -4,10 +4,12 @@
 #include "helpers.h"
 #include "Node.h";
 #include "Shader.h"
+#include "Mesh.h"
 
-struct LightInstanceData
+struct LightInstanceData : public InstanceData
 {
 	mathfu::vec3 position = mathfu::vec3(0, 0, 0);
+	mathfu::vec3 direction = mathfu::vec3(0, 0, 1);
 	mathfu::vec3 color = mathfu::vec3(1, 1, 1);
 	float power = 1.0;
 	float radius = 10.0f;
