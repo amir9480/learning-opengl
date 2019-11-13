@@ -64,10 +64,10 @@ void MyApp::init()
 	texture2 = new Texture("./assets/textures/grass.jpg");
 
 	scene->addNode(Mesh::createPlane(300)->setDiffuse(texture2)->setName("plane_mesh")->setScale(mathfu::vec3(1000, 1000, 1000)));
-	scene->addNode(Mesh::createSphere()->setDiffuse(texture1)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
+	scene->addNode(Mesh::createCone()->setDiffuse(texture1)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
 	scene->find("mesh2")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh3")->setPosition(mathfu::vec3(5, 0, 5)));
 	scene->find("mesh3")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh4")->setPosition(mathfu::vec3(-5, 0, 0)));
-	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh5")->setPosition(mathfu::vec3(-20, 1, 1)));
+	scene->addNode(Mesh::createCone()->setDiffuse(texture1)->setName("mesh5")->setPosition(mathfu::vec3(-20, 1, 1)));
 	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh6")->setPosition(mathfu::vec3(20, 1, 20))->rotate(mathfu::vec3(0, 1, 0), 45));
 	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh7")->setPosition(mathfu::vec3(-20, 1, 20)));
 	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh8")->setPosition(mathfu::vec3(20, 1, -20)));

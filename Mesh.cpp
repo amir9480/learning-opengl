@@ -132,6 +132,41 @@ Mesh* Mesh::createSphere(u32 rows, u32 cols, bool lightMesh)
 	return new Mesh(vertices, indicies, lightMesh);
 }
 
+Mesh* Mesh::createCone(u32 cols, bool lightMesh)
+{
+	std::vector<Vertex> vertices;
+	std::vector<u32> indicies;
+
+	//vertices.resize(rows * cols);
+	//indicies.resize(rows * cols * 3);
+
+	f32 colStep = 1.0 / (cols - 1);
+	f32 piOn2 = mathfu::kPi * 0.5f;
+	f32 piM2 = mathfu::kPi * 2.0f;
+	u32 currentRow = 0;
+	u32 nextRow = 0;
+	mathfu::vec3 tempVec;
+	mathfu::vec3 tempNorm;
+
+	vertices.push_back(Vertex(0, -1, 0, 0, 0, 0, -1, 0));
+	vertices.push_back(Vertex(0, 0, 0, 0, 0, 0, 1, 0));
+
+	for (u32 i = 0; i < cols; i++) {
+		vertices.push_back(Vertex(cos(piM2 * i * colStep), -1, sin(piM2 * i * colStep), cos(mathfu::kPi * i * colStep), sin(mathfu::kPi * i * colStep), 0, -1, 0));
+		if (i < cols - 1) {
+			indicies.push_back(0);
+			indicies.push_back(i + 3);
+			indicies.push_back(i + 2);
+
+			indicies.push_back(1);
+			indicies.push_back(i + 2);
+			indicies.push_back(i + 3);
+		}
+	}
+
+	return new Mesh(vertices, indicies, lightMesh);
+}
+
 void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count, u32 size)
 {
 	if (mMaterial && camera) {

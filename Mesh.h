@@ -49,7 +49,9 @@ public:
 	static Mesh* createPlane(u32 _uvRepeat = 1);
 
 	static Mesh* createSphere(u32 rows = 12, u32 cols = 12, bool lightMesh = false);
-	
+
+	static Mesh* createCone(u32 cols = 12, bool lightMesh = false);
+
 	void draw(Camera* camera = nullptr, InstanceData* instanceData = nullptr, u32 count = 0, u32 size = 0);
 
 	void draw(Camera* camera, std::vector<InstanceData> instanceData);
