@@ -148,11 +148,11 @@ Mesh* Mesh::createCone(u32 cols, bool lightMesh)
 	mathfu::vec3 tempVec;
 	mathfu::vec3 tempNorm;
 
-	vertices.push_back(Vertex(0, -1, 0, 0, 0, 0, -1, 0));
+	vertices.push_back(Vertex(0, 0, 1, 0, 0, 0, -1, 0));
 	vertices.push_back(Vertex(0, 0, 0, 0, 0, 0, 1, 0));
 
 	for (u32 i = 0; i < cols; i++) {
-		vertices.push_back(Vertex(cos(piM2 * i * colStep), -1, sin(piM2 * i * colStep), cos(mathfu::kPi * i * colStep), sin(mathfu::kPi * i * colStep), 0, -1, 0));
+		vertices.push_back(Vertex(cos(piM2 * i * colStep), sin(piM2 * i * colStep), 1, cos(mathfu::kPi * i * colStep), sin(mathfu::kPi * i * colStep), 0, -1, 0));
 		if (i < cols - 1) {
 			indicies.push_back(0);
 			indicies.push_back(i + 3);

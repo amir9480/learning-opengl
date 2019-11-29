@@ -44,6 +44,9 @@ public:
 
 	LightInstanceData toLightData() const;
 
+	virtual void postRender(Camera* camera = nullptr);
+
+	bool booted = false;
 protected:
 	Type mType;
 	mathfu::vec3 mColor = mathfu::vec3(1, 1, 1);

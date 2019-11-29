@@ -79,6 +79,7 @@ mathfu::mat4 Camera::getViewProjection() const
 void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* instanceData, u32 count, u32 size)
 {
 	shader->use();
+	shader->setBool("instancing", instanceData != nullptr);
 	shader->setFloat3("camPos", this->getPosition());
 	shader->setMatrix("viewProjection", this->getViewProjection());
 	shader->setMatrix("view", this->getView());

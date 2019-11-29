@@ -17,7 +17,7 @@
 #include <mathfu/matrix.h>
 #include <mathfu/constants.h>
 #include <mathfu/glsl_mappings.h>
-#include "3rdparty/stb_image.h"
+#include "3rdparty/includes/stb_image.h"
 
 #define ABORT(MSG) std::cout<<"ERROR "<<MSG<<"\n\nFile:"<<__FILE__<<"("<<__LINE__<<")"<<std::endl;exit(-1);
 #define extends : public

@@ -162,7 +162,7 @@ const std::vector<std::string>& Node::getTags() const
 	return mTags;
 }
 
-void Node::preRender()
+void Node::preRender(Camera* camera)
 {
 }
 
@@ -170,7 +170,7 @@ void Node::render(Camera* camera)
 {
 }
 
-void Node::postRender()
+void Node::postRender(Camera* camera)
 {
 }
 
@@ -206,4 +206,15 @@ Node* Node::findChild(std::string name)
 std::list<Node*>& Node::getChildren()
 {
 	return mChildren;
+}
+
+Node* Node::setTicking(bool _val)
+{
+	mTicking = true;
+	return this;
+}
+
+bool Node::getTicking() const
+{
+	return mTicking;
 }

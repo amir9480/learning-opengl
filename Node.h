@@ -51,11 +51,11 @@ public:
 
 	const std::vector<std::string>& getTags() const;
 
-	virtual void preRender();
+	virtual void preRender(Camera* camera = nullptr);
 
 	virtual void render(Camera* camera = nullptr);
 
-	virtual void postRender();
+	virtual void postRender(Camera* camera = nullptr);
 
 	virtual std::string getClass() const;
 
@@ -65,6 +65,9 @@ public:
 
 	std::list<Node*>& getChildren();
 
+	Node* setTicking(bool _val);
+	bool getTicking() const;
+
 protected:
 	Node*						mParent = nullptr;
 	std::list<Node*>			mChildren;
@@ -73,6 +76,7 @@ protected:
 	mathfu::vec3				mPosition = mathfu::vec3(0.0f, 0.0f, 0.0f);
 	mathfu::quat				mRotation;
 	mathfu::vec3				mScale = mathfu::vec3(1.0f, 1.0f, 1.0f);
+	bool						mTicking = true;
 };
 
 

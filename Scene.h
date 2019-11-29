@@ -33,6 +33,7 @@ protected:
 protected:
 	std::string						mName;
 	std::list<Node*>				mNodes;
+	std::list<Node*>				mTickingNodes;
 	Camera*							mMainCamera;
 	std::vector<Light*>				mLights;
 	std::vector<LightInstanceData>	mLightDataInstances;

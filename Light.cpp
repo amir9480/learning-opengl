@@ -3,6 +3,9 @@
 Light::Light(Type _type)
 	:Node()
 {
+	if (_type != Type::Directional) {
+		mTicking = false;
+	}
 	mType = _type;
 }
 
@@ -77,4 +80,14 @@ LightInstanceData Light::toLightData() const
 	out.power = mPower;
 	out.radius = mRadius;
 	return out;
+}
+
+void Light::postRender(Camera* camera)
+{
+	if (mType == Type::Directional) {
+		Shader* lightShader = Shader::lightShader();
+		this->setShaderParameters(lightShader);
+		lightShader->setMatrix("MVP", mathfu::mat4::Identity());
+		camera->postProccess(lightShader, true);
+	}
 }

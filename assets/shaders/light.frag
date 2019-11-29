@@ -78,11 +78,15 @@ void main()
 		_lightRadius = instanceLightRadius;
 		_lightPower = instanceLightPower;
 	}
+	
 	screenCoord = (TexCoord.xy / TexCoord.w) * 0.5 + 0.5;
 	vec3 albedoPixel = texture2D(albedo, screenCoord).xyz;
 	vec3 normalVec = texture2D(normal, screenCoord).xyz;
 	normalVec = normalize((normalVec * 2.0) - 1.0);
-	vec3 worldPos = worldPosFromDepth(texture2D(depth, screenCoord).r);
+	float depthValue = texture2D(depth, screenCoord).r;
+	vec3 worldPos = worldPosFromDepth(depthValue);
+	vec3 camToWorld = worldPos - camPos;
+	float camToWorldLength = length(worldPos - camPos);
 
 	vec3 diffuse = albedoPixel.rgb;
 	vec3 ambient = vec3(0, 0, 0);
@@ -92,17 +96,18 @@ void main()
 	if (lightType == LightTypeDirectional) {
 		ambient = 0.0 * albedoPixel * lightColor;
 		diffuse *= max(0.0, dot(normalVec, lightDirection)) * lightColor * lightPower;
-		vec3 reflectDir = reflect(-lightDirection, normalVec);
-		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel * lightColor * lightPower;
+		if (camToWorldLength < 100.0) {
+			vec3 reflectDir = reflect(-lightDirection, normalVec);
+			specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel * lightColor * lightPower;
+		}
 	} else if (lightType == LightTypePoint) {
 		vec3 lightToPixel = normalize(worldPos - _lightPosition);
 		float lightToPixelDistance = distance(worldPos, _lightPosition);
 		float att = clamp(1.0 - lightToPixelDistance * lightToPixelDistance /(_lightRadius * _lightRadius), 0.0, 1.0);
 		att *= att;
 		diffuse *= max(0.0, dot(normalVec, lightToPixel)) * _lightColor * att * _lightPower;
-		vec3 reflectDir = reflect(-lightToPixel, normalVec);
-		vec3 camToWorld = worldPos - camPos;
-		if (length(camToWorld) < _lightRadius * 2) {
+		if (camToWorldLength < _lightRadius * 2) {
+			vec3 reflectDir = reflect(-lightToPixel, normalVec);
 			specular = clamp((clamp(3.0 * (1 - length(camToWorld) / (_lightRadius * 2)), 0, 1)) * vec3(pow(max(0, dot(normalize(camToWorld), reflectDir)), 64)) * albedoPixel * _lightColor * att * _lightPower, 0, 1);
 		}
 	}

@@ -14,6 +14,13 @@ Scene::~Scene()
 void Scene::addNode(Node* _newNode)
 {
 	mNodes.push_back(_newNode);
+	if (_newNode->getTicking()) {
+		mTickingNodes.push_back(_newNode);
+	}
+	if (_newNode->getClass() == "Light" && !_newNode->getTicking()) {
+		Light* light = reinterpret_cast<Light*>(_newNode);
+		mLights.push_back(light);
+	}
 }
 
 void Scene::setMainCamera(Camera* _camera)
@@ -23,8 +30,8 @@ void Scene::setMainCamera(Camera* _camera)
 
 void Scene::preRender()
 {
-	for (auto node : mNodes) {
-		node->preRender();
+	for (auto node : mTickingNodes) {
+		node->preRender(mMainCamera);
 	}
 }
 
@@ -35,8 +42,7 @@ void Scene::render()
 
 void Scene::renderCallback(Camera* _mainCamera)
 {
-
-	for (auto node : mNodes) {
+	for (auto node : mTickingNodes) {
 		node->render(_mainCamera);
 	}
 
@@ -60,8 +66,13 @@ void Scene::renderCallback(Camera* _mainCamera)
 void Scene::postRender()
 {
 	Shader* lightShader = Shader::lightShader();
-	for (auto node : mNodes) {
-		renderLights(node);
+	if (mLights.size() != mLightDataInstances.size()) {
+		for (auto node : mLights) {
+			renderLights(node);
+		}
+	}
+	if (mLights.size() > 0) {
+		dynamic_cast<Light*>(mLights[0])->setShaderParameters(lightShader);
 	}
 
 	static Mesh* lightSphere = nullptr;
@@ -73,8 +84,8 @@ void Scene::postRender()
 		mMainCamera->postProccess(lightShader, true, lightSphere, mLightDataInstances.data(), mLightDataInstances.size(), sizeof(LightInstanceData));
 		glFrontFace(GL_CCW);
 	}
-	for (auto node : mNodes) {
-		node->postRender();
+	for (auto node : mTickingNodes) {
+		node->postRender(mMainCamera);
 	}
 }
 
@@ -102,18 +113,11 @@ std::list<Node*>& Scene::getNodes()
 void Scene::renderLights(Node* node)
 {
 	Shader* lightShader = Shader::lightShader();
-	if (node->getClass() == "Light") {
-		Light* light = reinterpret_cast<Light*>(node);
-		light->setShaderParameters(lightShader);
+	Light* light = reinterpret_cast<Light*>(node);
+	light->setShaderParameters(lightShader);
 
-		if (light->getType() == Light::Directional) {
-			lightShader->setMatrix("MVP", mathfu::mat4::Identity());
-			mMainCamera->postProccess(lightShader, true);
-		} else {
-			if (std::find(mLights.begin(), mLights.end(), light) == mLights.end()) {
-				mLights.push_back(light);
-				mLightDataInstances.push_back(light->toLightData());
-			}
-		}
+	if (!light->booted) {
+		light->booted = true;
+		mLightDataInstances.push_back(light->toLightData());
 	}
 }
