@@ -46,10 +46,10 @@ Mesh* Mesh::createCube()
 		Vertex(+1.0f,  1.0f,  1.0f,  1.0f, 1.0f, 0.0f,  0.0f,  1.0f), // top-right
 		Vertex(-1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 0.0f,  0.0f,  1.0f), // top-left
 		// left face
-		Vertex(-1.0f,  1.0f,  1.0f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f), // top-right
-		Vertex(-1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 1.0f,  0.0f,  0.0f), // top-left
-		Vertex(-1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 1.0f,  0.0f,  0.0f), // bottom-left
-		Vertex(-1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 1.0f,  0.0f,  0.0f), // bottom-right
+		Vertex(-1.0f,  1.0f,  1.0f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f), // top-right
+		Vertex(-1.0f,  1.0f, -1.0f,  1.0f, 1.0f, -1.0f,  0.0f,  0.0f), // top-left
+		Vertex(-1.0f, -1.0f, -1.0f,  0.0f, 1.0f, -1.0f,  0.0f,  0.0f), // bottom-left
+		Vertex(-1.0f, -1.0f,  1.0f,  0.0f, 0.0f, -1.0f,  0.0f,  0.0f), // bottom-right
 		// right face
 		Vertex(+1.0f,  1.0f,  1.0f,  1.0f, 0.0f, 1.0f,  0.0f,  0.0f), // top-left
 		Vertex(+1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 1.0f,  0.0f,  0.0f), // bottom-right
@@ -107,7 +107,7 @@ Mesh* Mesh::createSphere(u32 rows, u32 cols, bool lightMesh)
 				sin(-piOn2 + mathfu::kPi * r * rowStep),
 				sin(piM2 * c * colStep)* sin(mathfu::kPi * r * rowStep)
 			);
-			tempNorm = - tempVec.Normalized();
+			tempNorm = tempVec.Normalized();
 			vertices.push_back(Vertex(
 				tempVec.x, tempVec.y, tempVec.z,
 				r * rowStep,
@@ -257,16 +257,22 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 			norm[j].z = vertices[_indices[i * 3 + j]].nz;
 		}
 
-		axis[0] = pos[1] - pos[0];
-		axis[1] = pos[1] - pos[2];
-		norm[3] = mathfu::vec3::CrossProduct(axis[1], axis[0]);
+		axis[0] = pos[0] - pos[1];
+		axis[1] = pos[2] - pos[0];
+		norm[3] = mathfu::vec3::CrossProduct(axis[0], axis[1]);
 		for (u32 j = 0; j < 3; j++) {
 			norm[j] = (norm[j] + norm[3]).Normalized();
 
-			vertices[_indices[i * 3 + j]].nx = norm[j].x;
-			vertices[_indices[i * 3 + j]].ny = norm[j].y;
-			vertices[_indices[i * 3 + j]].nz = norm[j].z;
+			vertices[_indices[i * 3 + j]].nx += norm[j].x;
+			vertices[_indices[i * 3 + j]].ny += norm[j].y;
+			vertices[_indices[i * 3 + j]].nz += norm[j].z;
 		}
+	}
+	for (u32 i = 0; i < mVerticesCount; i++) {
+		mathfu::vec3 realNormal = mathfu::vec3(vertices[i].nx, vertices[i].ny, vertices[i].nz).Normalized();
+		vertices[i].nx = realNormal.x;
+		vertices[i].ny = realNormal.y;
+		vertices[i].nz = realNormal.z;
 	}
 
 	glGenVertexArrays(1, &mVAO);

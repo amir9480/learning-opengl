@@ -79,11 +79,12 @@ void Scene::postRender()
 	if (lightSphere == nullptr) {
 		lightSphere = Mesh::createSphere(24, 24, true)->setMaterial(nullptr);
 	}
-	if (mLightDataInstances.size() > 2) {
+	if (mLightDataInstances.size() > 0) {
 		glFrontFace(GL_CW);
 		mMainCamera->postProccess(lightShader, true, lightSphere, mLightDataInstances.data(), mLightDataInstances.size(), sizeof(LightInstanceData));
 		glFrontFace(GL_CCW);
 	}
+
 	for (auto node : mTickingNodes) {
 		node->postRender(mMainCamera);
 	}

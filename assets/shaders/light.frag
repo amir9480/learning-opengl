@@ -95,17 +95,15 @@ void main()
 
 	if (lightType == LightTypeDirectional) {
 		ambient = 0.0 * albedoPixel * lightColor;
-		diffuse *= max(0.0, dot(normalVec, lightDirection)) * lightColor * lightPower;
-		if (camToWorldLength < 100.0) {
-			vec3 reflectDir = reflect(-lightDirection, normalVec);
-			specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel * lightColor * lightPower;
-		}
+		diffuse *= max(0.0, dot(normalVec, -lightDirection)) * lightColor * lightPower;
+		vec3 reflectDir = reflect(-lightDirection, normalVec);
+		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel * lightColor * lightPower;
 	} else if (lightType == LightTypePoint) {
 		vec3 lightToPixel = normalize(worldPos - _lightPosition);
 		float lightToPixelDistance = distance(worldPos, _lightPosition);
 		float att = clamp(1.0 - lightToPixelDistance * lightToPixelDistance /(_lightRadius * _lightRadius), 0.0, 1.0);
 		att *= att;
-		diffuse *= max(0.0, dot(normalVec, lightToPixel)) * _lightColor * att * _lightPower;
+		diffuse *= max(0.0, dot(normalVec, -lightToPixel)) * _lightColor * att * _lightPower;
 		if (camToWorldLength < _lightRadius * 2) {
 			vec3 reflectDir = reflect(-lightToPixel, normalVec);
 			specular = clamp((clamp(3.0 * (1 - length(camToWorld) / (_lightRadius * 2)), 0, 1)) * vec3(pow(max(0, dot(normalize(camToWorld), reflectDir)), 64)) * albedoPixel * _lightColor * att * _lightPower, 0, 1);
@@ -115,5 +113,5 @@ void main()
 
 	FragColor = vec4(ambient + diffuse + specular, 1);
 	
-	//FragColor = vec4(normalVec, 1);
+	//FragColor = vec4((normalVec + 0.5) / 2, 1);
 }

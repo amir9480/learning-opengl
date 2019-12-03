@@ -137,7 +137,7 @@ void Camera::reCompute()
 {
 	mView = mathfu::mat4::LookAt(getGlobalPosition() + getForward(), getGlobalPosition(), getUp(), -1.0).Transpose();
 	if (mProjectionType == ProjectionType::Perspective) {
-		mProjection = mathfu::mat4::Perspective(mFov * mathfu::kDegreesToRadians, mAspectRatio, 0.01f, 1000.0f, -1.0f).Transpose();
+		mProjection = mathfu::mat4::Perspective(mFov * mathfu::kDegreesToRadians, mAspectRatio, 0.1f, 1000.0f, -1.0f).Transpose();
 		mViewProjection = (mView * mProjection);
 	}
 	else {
