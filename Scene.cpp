@@ -66,7 +66,7 @@ void Scene::renderCallback(Camera* _mainCamera)
 void Scene::postRender()
 {
 	Shader* lightShader = Shader::lightShader();
-	if (mLights.size() != mLightDataInstances.size()) {
+	if (mLights.size() != mPointLightDataInstances.size() + mSpotLightDataInstances.size()) {
 		for (auto node : mLights) {
 			renderLights(node);
 		}
@@ -79,9 +79,16 @@ void Scene::postRender()
 	if (lightSphere == nullptr) {
 		lightSphere = Mesh::createSphere(24, 24, true)->setMaterial(nullptr);
 	}
-	if (mLightDataInstances.size() > 0) {
+	if (mPointLightDataInstances.size() > 0) {
 		glFrontFace(GL_CW);
-		mMainCamera->postProccess(lightShader, true, lightSphere, mLightDataInstances.data(), mLightDataInstances.size(), sizeof(LightInstanceData));
+		lightShader->setInt("lightType", Light::Type::Point);
+		mMainCamera->postProccess(lightShader, true, lightSphere, mPointLightDataInstances.data(), mPointLightDataInstances.size(), sizeof(LightInstanceData));
+		glFrontFace(GL_CCW);
+	}
+	if (mSpotLightDataInstances.size() > 0) {
+		glFrontFace(GL_CW);
+		lightShader->setInt("lightType", Light::Type::Spot);
+		mMainCamera->postProccess(lightShader, true, lightSphere, mSpotLightDataInstances.data(), mSpotLightDataInstances.size(), sizeof(LightInstanceData));
 		glFrontFace(GL_CCW);
 	}
 
@@ -119,6 +126,10 @@ void Scene::renderLights(Node* node)
 
 	if (!light->booted) {
 		light->booted = true;
-		mLightDataInstances.push_back(light->toLightData());
+		if (light->getType() == Light::Point) {
+			mPointLightDataInstances.push_back(light->toLightData());
+		} else if (light->getType() == Light::Spot) {
+			mSpotLightDataInstances.push_back(light->toLightData());
+		}
 	}
 }

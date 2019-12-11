@@ -36,7 +36,8 @@ protected:
 	std::list<Node*>				mTickingNodes;
 	Camera*							mMainCamera;
 	std::vector<Light*>				mLights;
-	std::vector<LightInstanceData>	mLightDataInstances;
+	std::vector<LightInstanceData>	mPointLightDataInstances;
+	std::vector<LightInstanceData>	mSpotLightDataInstances;
 };
 
 #endif // _SCENE_H_

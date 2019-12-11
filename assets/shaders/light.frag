@@ -2,6 +2,7 @@
 
 const int LightTypeDirectional = 0;
 const int LightTypePoint = 1;
+const int LightTypeSpot = 2;
 
 out vec4 FragColor;
   
@@ -9,8 +10,9 @@ in vec4 TexCoord;
 in vec3 instanceLightColor;
 in vec3 instanceLightDirection;
 in vec3 instanceLightPosition;
-in float instanceLightRadius;
 in float instanceLightPower;
+in float instanceLightCone;
+in float instanceLightRadius;
 
 vec2 screenCoord;
 
@@ -20,6 +22,7 @@ uniform vec3 lightDirection = normalize(vec3(0.5, -0.5, 0.5));
 uniform int lightType = LightTypeDirectional;
 uniform vec3 lightPosition = vec3(0.0, 3.0, 0.0);
 uniform float lightRadius =  250.0;
+uniform float lightCone =  1.0;
 uniform float lightPower = 1.0;
 uniform vec3 camPos = vec3(0, 0, 0);
 uniform mat4x4 MVP;
@@ -42,6 +45,7 @@ struct LightInstanceData
 	vec3 color;
 	float power;
 	float radius;
+	float cone;
 };
 
 vec3 worldPosFromDepth(float d) {
@@ -67,15 +71,17 @@ float realDepth()
 void main()
 {
 	vec3 _lightColor = lightColor;
-	vec3 _lightDirection = lightDirection;
+	vec3 _lightDirection = normalize(lightDirection);
 	vec3 _lightPosition = lightPosition;
 	float _lightRadius = lightRadius;
+	float _lightCone = lightCone;
 	float _lightPower = lightPower;
 	if (instancing) {
 		_lightColor = instanceLightColor;
 		_lightPosition = instanceLightPosition;
-		_lightDirection = instanceLightDirection;
+		_lightDirection = normalize(instanceLightDirection);
 		_lightRadius = instanceLightRadius;
+		_lightCone = instanceLightCone;
 		_lightPower = instanceLightPower;
 	}
 	
@@ -95,14 +101,24 @@ void main()
 
 	if (lightType == LightTypeDirectional) {
 		ambient = 0.0 * albedoPixel * lightColor;
-		diffuse *= max(0.0, dot(normalVec, -lightDirection)) * lightColor * lightPower;
-		vec3 reflectDir = reflect(-lightDirection, normalVec);
+		diffuse *= max(0.0, dot(normalVec, -_lightDirection)) * lightColor * lightPower;
+		vec3 reflectDir = reflect(-_lightDirection, normalVec);
 		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel * lightColor * lightPower;
 	} else if (lightType == LightTypePoint) {
 		vec3 lightToPixel = normalize(worldPos - _lightPosition);
 		float lightToPixelDistance = distance(worldPos, _lightPosition);
-		float att = clamp(1.0 - lightToPixelDistance * lightToPixelDistance /(_lightRadius * _lightRadius), 0.0, 1.0);
+		float att = clamp(1.0 - (lightToPixelDistance * lightToPixelDistance * lightToPixelDistance /(_lightRadius * _lightRadius)), 0.0, 1.0);
 		att *= att;
+		diffuse *= max(0.0, dot(normalVec, -lightToPixel)) * _lightColor * att * _lightPower;
+		if (camToWorldLength < _lightRadius * 2) {
+			vec3 reflectDir = reflect(-lightToPixel, normalVec);
+			specular = clamp((clamp(3.0 * (1 - length(camToWorld) / (_lightRadius * 2)), 0, 1)) * vec3(pow(max(0, dot(normalize(camToWorld), reflectDir)), 64)) * albedoPixel * _lightColor * att * _lightPower, 0, 1);
+		}
+	} else if (lightType == LightTypeSpot) {
+		vec3 lightToPixel = normalize(worldPos - _lightPosition);
+		float lightToPixelDistance = distance(worldPos, _lightPosition);
+		float att = clamp(1.0 - (lightToPixelDistance * lightToPixelDistance * lightToPixelDistance /(_lightRadius * _lightRadius)), 0.0, 1.0) * ((acos(dot(lightToPixel, _lightDirection)) < _lightCone && acos(dot(lightToPixel, _lightDirection)) > 0.0f) ? 1.0 : 0.0f);
+		
 		diffuse *= max(0.0, dot(normalVec, -lightToPixel)) * _lightColor * att * _lightPower;
 		if (camToWorldLength < _lightRadius * 2) {
 			vec3 reflectDir = reflect(-lightToPixel, normalVec);

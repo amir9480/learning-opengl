@@ -7,7 +7,8 @@ layout (location = 7) in vec3 aLightPosition;
 layout (location = 8) in vec3 aLightDirection;
 layout (location = 9) in vec3 aLightColor;
 layout (location = 10) in float aLightPower;
-layout (location = 11) in float aLightRadius;
+layout (location = 11) in float aLightCone;
+layout (location = 12) in float aLightRadius;
 
 const int LightTypeDirectional = 0;
 const int LightTypePoint = 1;
@@ -16,8 +17,9 @@ out vec4 TexCoord;
 out vec3 instanceLightColor;
 out vec3 instanceLightDirection;
 out vec3 instanceLightPosition;
-out float instanceLightRadius;
 out float instanceLightPower;
+out float instanceLightCone;
+out float instanceLightRadius;
 
 uniform bool instancing = false;
 uniform mat4 MVP;
@@ -34,6 +36,7 @@ void main()
 		instanceLightDirection = aLightDirection;
 		instanceLightPosition = aLightPosition;
 		instanceLightRadius = aLightRadius;
+		instanceLightCone = aLightCone;
 		instanceLightPower = aLightPower;
 	} else {
 		gl_Position = vec4(aPos, 1.0) * MVP;

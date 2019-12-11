@@ -12,6 +12,7 @@ struct LightInstanceData : public InstanceData
 	mathfu::vec3 direction = mathfu::vec3(0, 0, 1);
 	mathfu::vec3 color = mathfu::vec3(1, 1, 1);
 	float power = 1.0;
+	float cone = 1.0f;
 	float radius = 10.0f;
 };
 
@@ -20,7 +21,8 @@ class Light : public Node
 public:
 	enum Type {
 		Directional,
-		Point
+		Point,
+		Spot
 	};
 
 public:
@@ -38,6 +40,9 @@ public:
 	Light* setRadius(float radius);
 	float getRadius() const;
 
+	Light* setCone(float cone);
+	float getCone() const;
+
 	void setShaderParameters(Shader* lightShader) const;
 
 	virtual std::string getClass() const;
@@ -52,6 +57,7 @@ protected:
 	mathfu::vec3 mColor = mathfu::vec3(1, 1, 1);
 	float mPower = 1.0;
 	float mRadius = 10.0f;
+	float mCone = 45.0f;
 };
 
 #endif // _LIGHT_H_

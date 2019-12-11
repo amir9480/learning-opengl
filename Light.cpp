@@ -54,6 +54,17 @@ float Light::getRadius() const
 	return mRadius;
 }
 
+Light* Light::setCone(float cone)
+{
+	mCone = cone;
+	return this;
+}
+
+float Light::getCone() const
+{
+	return mCone;
+}
+
 void Light::setShaderParameters(Shader* lightShader) const
 {
 	lightShader->setBool("instancing", false);
@@ -62,6 +73,7 @@ void Light::setShaderParameters(Shader* lightShader) const
 	lightShader->setFloat3("lightDirection", this->getForward());
 	lightShader->setFloat("lightPower", this->getPower());
 	lightShader->setFloat("lightRadius", this->getRadius());
+	lightShader->setFloat("lightCone", this->getCone() * mathfu::kDegreesToRadians * 0.5f);
 	lightShader->setFloat3("lightPosition", this->getPosition());
 }
 
@@ -75,10 +87,11 @@ LightInstanceData Light::toLightData() const
 	static LightInstanceData out;
 	out.world = this->getTransformMatrix();
 	out.position = mPosition;
-	out.direction = mathfu::vec3(0, 0, 0);
+	out.direction = getForward();
 	out.color = mColor;
 	out.power = mPower;
 	out.radius = mRadius;
+	out.cone = mCone * mathfu::kDegreesToRadians * 0.5f;
 	return out;
 }
 

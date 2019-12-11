@@ -297,7 +297,6 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 
 	glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
 	if (lightMesh) {
-		std::cout << offsetof(LightInstanceData, position) << "," <<sizeof(mathfu::vec3) <<"," <<sizeof(float)*3 << std::endl;
 		glBufferData(GL_ARRAY_BUFFER, sizeof(LightInstanceData), (void*)0, GL_DYNAMIC_DRAW);
 		for (u32 i = 0; i < 4; i++) {
 			glEnableVertexAttribArray(3 + i);
@@ -309,7 +308,7 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 			glVertexAttribPointer(7 + i, 3, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, position)) + (i * sizeof(mathfu::vec3))));
 			glVertexAttribDivisor(7 + i, 1);
 		}
-		for (u32 i = 0; i < 2; i++) {
+		for (u32 i = 0; i < 3; i++) {
 			glEnableVertexAttribArray(10 + i);
 			glVertexAttribPointer(10 + i, 1, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, power)) + (i * sizeof(float))));
 			glVertexAttribDivisor(10 + i, 1);
