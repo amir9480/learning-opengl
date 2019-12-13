@@ -1,14 +1,15 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
-layout (location = 2) in vec2 aTexCoord;
-layout (location = 3) in mat4 instancedWorld;
-layout (location = 7) in vec3 aLightPosition;
-layout (location = 8) in vec3 aLightDirection;
-layout (location = 9) in vec3 aLightColor;
-layout (location = 10) in float aLightPower;
-layout (location = 11) in float aLightCone;
-layout (location = 12) in float aLightRadius;
+layout (location = 2) in vec3 aTangent;
+layout (location = 3) in vec2 aTexCoord;
+layout (location = 4) in mat4 instancedWorld;
+layout (location = 8) in vec3 aLightPosition;
+layout (location = 9) in vec3 aLightDirection;
+layout (location = 10) in vec3 aLightColor;
+layout (location = 11) in float aLightPower;
+layout (location = 12) in float aLightCone;
+layout (location = 13) in float aLightRadius;
 
 const int LightTypeDirectional = 0;
 const int LightTypePoint = 1;

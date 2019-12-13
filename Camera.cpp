@@ -18,7 +18,7 @@ Camera::Camera(u32 width, u32 height, ProjectionType projectionType, f32 aspectR
 	glGenFramebuffers(1, &mFrameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
 
-	std::vector<std::string> gBuffers = { "albedo", "normal" };
+	std::vector<std::string> gBuffers = { "albedo", "normal", "tangent" };
 	for (u32 index = 0; index < gBuffers.size(); index++) {
 		mGBuffer[gBuffers[index]] = new Texture(mWidth, mHeight);
 		glBindTexture(GL_TEXTURE_2D, mGBuffer[gBuffers[index]]->mTexture);
@@ -102,6 +102,7 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* 
 	shader->setTexture("final", mFinalImage);
 	shader->setTexture("albedo", mGBuffer["albedo"]);
 	shader->setTexture("normal", mGBuffer["normal"]);
+	shader->setTexture("tangent", mGBuffer["tangent"]);
 	shader->setTexture("depth", mDepth);
 	if (mesh) {
 		mesh->setMaterial(shader);
@@ -169,7 +170,7 @@ void Camera::draw() const
 	Shader::simple()->use();
 	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	// Shader::simple()->setTexture("screen", getGbuffer("albedo"), 0);
+	//Shader::simple()->setTexture("screen", getGbuffer("normal"));
 	Shader::simple()->setTexture("screen", mFinalImage);
 	Mesh::quad()->draw();
 }

@@ -30,6 +30,9 @@ protected:
 	Texture* texture2;
 	Texture* towerTexture;
 	Texture* towerNormalTexture;
+	Texture* parDiffuse;
+	Texture* parNormal;
+	Texture* parDisplacment;
 	Camera* mainCamera;
 	Node* mainCameraController;
 	Scene* scene;
@@ -65,14 +68,17 @@ void MyApp::init()
 	texture1 = new Texture("./assets/textures/wall.jpg");
 	texture2 = new Texture("./assets/textures/grass.jpg");
 	towerTexture = new Texture("./assets/models/tower/textures/Wood_Tower_Col.jpg");
-	towerNormalTexture= new Texture("./assets/models/tower/textures/Wood_Tower_Nor.jpg");
+	towerNormalTexture = new Texture("./assets/models/tower/textures/Wood_Tower_Nor.jpg");
+	parDiffuse = new Texture("./assets/textures/brick/bricks.jpg");
+	parNormal = new Texture("./assets/textures/brick/bricks_norm.jpg");
+	parDisplacment = new Texture("./assets/textures/brick/bricks_disp.jpg");
 
 
 	scene->addNode(Mesh::createPlane(300)->setDiffuse(texture2)->setName("plane_mesh")->setScale(mathfu::vec3(1000, 1000, 1000)));
-	scene->addNode(Mesh::createCone()->setDiffuse(texture1)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
+	scene->addNode(Mesh::createCube()->setDiffuse(parDiffuse)->setDisplacment(parDisplacment)->setNormal(parNormal)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
 
 	scene->addNode(Mesh::createFromFile("./assets/models/tower/wooden_watch_tower2.fbx")
-		->setDiffuse(towerTexture)->setNormal(towerNormalTexture)->setScale(mathfu::vec3(3, 3, 3))
+		->setDiffuse(towerTexture)->setNormal(towerNormalTexture)->setScale(mathfu::vec3(3, 3, 3))->setPosition(mathfu::vec3(0, 0, 30))
 		->setName("Tower")->rotate(mathfu::vec3(1, 0, 0), -90));
 
 	scene->find("mesh2")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh3")->setPosition(mathfu::vec3(5, 0, 5)));
@@ -84,8 +90,8 @@ void MyApp::init()
 	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh9")->setPosition(mathfu::vec3(-20, 1, -20)));
 	scene->addNode(mainCameraController);
 	scene->setMainCamera(reinterpret_cast<Camera*>(mainCameraController->findChild("mainCamera")));
-	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.9, 0.95, 1.0))->setPower(0.4)->rotate(mathfu::vec3(1, 0, 0), -70.0));
-	scene->addNode((new Light(Light::Type::Spot))->setColor(mathfu::vec3(1.0, 0.5, 0.4))->setCone(60)->setRadius(30)->rotate(mathfu::vec3(1,0,0), -90)->setPosition(mathfu::vec3(0, 22.8, -4.2)));
+	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.9, 0.95, 1.0))->setPower(0.4)->rotate(mathfu::vec3(1, 0, 0), -120.0));
+	scene->addNode((new Light(Light::Type::Spot))->setColor(mathfu::vec3(1.0, 0.5, 0.4))->setCone(60)->setRadius(30)->rotate(mathfu::vec3(1,0,0), -90)->setPosition(mathfu::vec3(0, 22.8, 25)));
 	for (int i = 0; i < 10000; i++) {
 		Node* theNewLight = (new Light(i%2 == 0 ? Light::Type::Spot : Light::Type::Point))
 			->setColor(mathfu::vec3(randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0))
@@ -104,6 +110,9 @@ void MyApp::destroy()
 	delete texture2;
 	delete towerTexture;
 	delete towerNormalTexture;
+	delete parDiffuse;
+	delete parDisplacment;
+	delete parNormal;
 	delete mainCamera;
 	delete scene;
 }

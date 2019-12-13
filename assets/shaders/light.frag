@@ -36,6 +36,7 @@ uniform mat4x4 projectionInv;
 uniform sampler2D final;
 uniform sampler2D albedo;
 uniform sampler2D normal;
+uniform sampler2D tangent;
 uniform sampler2D depth;
 
 struct LightInstanceData

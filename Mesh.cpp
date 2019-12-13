@@ -41,8 +41,8 @@ Mesh* Mesh::createCube()
 	return new Mesh({
 		// back face
 		Vertex(-1.0f, -1.0f, -1.0f,  0.0f, 0.0f, 0.0f,  0.0f, -1.0f), // bottom-left
-		Vertex(1.0f,   1.0f, -1.0f,  1.0f, 1.0f, 0.0f,  0.0f, -1.0f), // top-right
-		Vertex(1.0f,  -1.0f, -1.0f,  1.0f, 0.0f, 0.0f,  0.0f, -1.0f), // bottom-right
+		Vertex(1.0f,   1.0f, -1.0f,  1.0f, 1.0f, 1.0f,  0.0f, -1.0f), // top-right
+		Vertex(1.0f,  -1.0f, -1.0f,  1.0f, 0.0f, 1.0f,  0.0f, -1.0f), // bottom-right
 		Vertex(-1.0f,  1.0f, -1.0f,  0.0f, 1.0f, 0.0f,  0.0f, -1.0f), // top-left
 		// front face
 		Vertex(-1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 0.0f,  0.0f,  1.0f), // bottom-left
@@ -207,9 +207,12 @@ void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count, u32 size)
 		mMaterial->setMatrix("viewMatrix", camera->getView());
 		mMaterial->setMatrix("projectionMatrix", camera->getProjection());
 		mMaterial->setMatrix("viewProjectionMatrix", camera->getViewProjection());
+		mMaterial->setFloat3("cameraPosition", camera->getPosition());
 		mMaterial->setTexture("diffuse", mDiffuse);
 		mMaterial->setBool("hasNormal", mNormal != nullptr);
 		mMaterial->setTexture("normalTexture", mNormal);
+		mMaterial->setBool("hasDisplacement", mDisplacement != nullptr);
+		mMaterial->setTexture("displacement", mDisplacement);
 	}
 
 	if (size == 0) {
@@ -278,7 +281,8 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 	this->mIndicesCount = _indicesCount;
 	Vertex* vertices = (Vertex*)_vertices;
 
-	mathfu::vec3 pos[3], norm[4], axis[2];
+	float r;
+	mathfu::vec3 pos[3], uv[3], norm[4], tangents[4], axis[2], uvaxis[2];
 	for (u32 i = 0; i < _indicesCount / 3; i++) {
 		for (u32 j = 0; j < 3; j++) {
 			pos[j].x = vertices[_indices[i * 3 + j]].px;
@@ -287,24 +291,49 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 			norm[j].x = vertices[_indices[i * 3 + j]].nx;
 			norm[j].y = vertices[_indices[i * 3 + j]].ny;
 			norm[j].z = vertices[_indices[i * 3 + j]].nz;
+			tangents[j].x = vertices[_indices[i * 3 + j]].tx;
+			tangents[j].y = vertices[_indices[i * 3 + j]].ty;
+			tangents[j].z = vertices[_indices[i * 3 + j]].tz;
+			uv[j].x = vertices[_indices[i * 3 + j]].u;
+			uv[j].y = vertices[_indices[i * 3 + j]].v;
 		}
 
 		axis[0] = pos[0] - pos[1];
 		axis[1] = pos[2] - pos[0];
-		norm[3] = mathfu::vec3::CrossProduct(axis[0], axis[1]);
+
+		uvaxis[0] = uv[0] - uv[1];
+		uvaxis[1] = uv[2] - uv[0];
+
+		r = 1.0f / (uvaxis[0].x * uvaxis[1].y - uvaxis[0].y * uvaxis[1].x);
+
+		norm[3] = mathfu::vec3::CrossProduct(axis[0], axis[1]).Normalized();
+		tangents[3] = ((axis[0] * uvaxis[1].y - axis[1] * uvaxis[0].y) * r).Normalized();
+
 		for (u32 j = 0; j < 3; j++) {
 			norm[j] = (norm[j] + norm[3]).Normalized();
+			tangents[j] = (tangents[j] + tangents[3]).Normalized();
 
 			vertices[_indices[i * 3 + j]].nx += norm[j].x;
 			vertices[_indices[i * 3 + j]].ny += norm[j].y;
 			vertices[_indices[i * 3 + j]].nz += norm[j].z;
+
+			vertices[_indices[i * 3 + j]].tx += tangents[j].x;
+			vertices[_indices[i * 3 + j]].ty += tangents[j].y;
+			vertices[_indices[i * 3 + j]].tz += tangents[j].z;
 		}
 	}
+	mathfu::vec3 realNormal, realTan;
 	for (u32 i = 0; i < mVerticesCount; i++) {
-		mathfu::vec3 realNormal = mathfu::vec3(vertices[i].nx, vertices[i].ny, vertices[i].nz).Normalized();
+		realNormal = mathfu::vec3(vertices[i].nx, vertices[i].ny, vertices[i].nz).Normalized();
+		realTan = mathfu::vec3(vertices[i].tx, vertices[i].ty, vertices[i].tz).Normalized();
+
 		vertices[i].nx = realNormal.x;
 		vertices[i].ny = realNormal.y;
 		vertices[i].nz = realNormal.z;
+
+		vertices[i].tx = realTan.x;
+		vertices[i].ty = realTan.y;
+		vertices[i].tz = realTan.z;
 	}
 
 	glGenVertexArrays(1, &mVAO);
@@ -321,36 +350,38 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(9 * sizeof(float)));
 
 	glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
 	if (lightMesh) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(LightInstanceData), (void*)0, GL_DYNAMIC_DRAW);
 		for (u32 i = 0; i < 4; i++) {
-			glEnableVertexAttribArray(3 + i);
-			glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(4 * i * sizeof(float)));
-			glVertexAttribDivisor(3 + i, 1);
+			glEnableVertexAttribArray(4 + i);
+			glVertexAttribPointer(4 + i, 4, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(4 * i * sizeof(float)));
+			glVertexAttribDivisor(4 + i, 1);
 		}
 		for (u32 i = 0; i < 3; i++) {
-			glEnableVertexAttribArray(7 + i);
-			glVertexAttribPointer(7 + i, 3, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, position)) + (i * sizeof(mathfu::vec3))));
-			glVertexAttribDivisor(7 + i, 1);
+			glEnableVertexAttribArray(8 + i);
+			glVertexAttribPointer(8 + i, 3, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, position)) + (i * sizeof(mathfu::vec3))));
+			glVertexAttribDivisor(8 + i, 1);
 		}
 		for (u32 i = 0; i < 3; i++) {
-			glEnableVertexAttribArray(10 + i);
-			glVertexAttribPointer(10 + i, 1, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, power)) + (i * sizeof(float))));
-			glVertexAttribDivisor(10 + i, 1);
+			glEnableVertexAttribArray(11 + i);
+			glVertexAttribPointer(11 + i, 1, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, power)) + (i * sizeof(float))));
+			glVertexAttribDivisor(11 + i, 1);
 		}
 	}else {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData), (void*)0, GL_DYNAMIC_DRAW);
 		for (u32 i = 0; i < 4; i++) {
-			glEnableVertexAttribArray(3 + i);
-			glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (void*)(4 * i * sizeof(float)));
-			glVertexAttribDivisor(3 + i, 1);
+			glEnableVertexAttribArray(4 + i);
+			glVertexAttribPointer(4 + i, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (void*)(4 * i * sizeof(float)));
+			glVertexAttribDivisor(4 + i, 1);
 		}
 	}
 
@@ -408,6 +439,12 @@ Mesh* Mesh::setDiffuse(Texture* texture)
 Mesh* Mesh::setNormal(Texture* texture)
 {
 	mNormal = texture;
+	return this;
+}
+
+Mesh* Mesh::setDisplacment(Texture* texture)
+{
+	mDisplacement = texture;
 	return this;
 }
 

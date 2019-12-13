@@ -9,14 +9,28 @@ struct Vertex
 {
 	f32 px, py, pz;
 	f32 nx, ny, nz;
-	f32 u, v;
+	f32 tx, ty, tz;
+	f32 u, v; 
 
-	Vertex(f32 _px = 0.0f, f32 _py = 0.0f, f32 _pz = 0.0f,
-		f32 _u = 0.0f, f32 _v = 0.0f,
+
+	Vertex(f32 _px, f32 _py, f32 _pz,
+		f32 _u, f32 _v,
 		f32 _nx = 0.0f, f32 _ny = 0.0f, f32 _nz = 0.0f) :
 		px(_px), py(_py), pz(_pz),
 		nx(_nx), ny(_ny), nz(_nz),
-		u(_u), v(_v) {}
+		u(_u), v(_v),
+		tx(0), ty(0), tz(0)
+	{}
+
+	Vertex(f32 _px, f32 _py, f32 _pz,
+		f32 _u, f32 _v,
+		f32 _nx, f32 _ny, f32 _nz,
+		f32 _tx, f32 _ty, f32 _tz) : 
+		px(_px), py(_py), pz(_pz),
+		nx(_nx), ny(_ny), nz(_nz),
+		u(_u), v(_v),
+		tx(_tx), ty(_ty), tz(_tz)
+	{}
 };
 
 struct InstanceData
@@ -80,6 +94,8 @@ public:
 
 	Mesh* setNormal(Texture* texture);
 
+	Mesh* setDisplacment(Texture* texture);
+
 	virtual std::string getClass() const;
 
 	u32 getInstanceVBO() const;
@@ -94,6 +110,7 @@ private:
 	Shader*  mMaterial;
 	Texture* mDiffuse = nullptr;
 	Texture* mNormal = nullptr;
+	Texture* mDisplacement = nullptr;
 };
 
 #endif // _MESH_H_

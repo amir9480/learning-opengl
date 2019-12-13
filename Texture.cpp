@@ -8,7 +8,7 @@ Texture::Texture(std::string _file)
 	int channels = 0;
 	u8* data = stbi_load(_file.c_str(), &mWidth, &mHeight, &channels, 0);
 	if (!data) {
-		ABORT("Texture File does not exists.");
+		ABORT(std::string("Texture File \"") + _file + "\" does not exists.");
 	}
 	glGenTextures(1, &mTexture);
 	glBindTexture(GL_TEXTURE_2D, mTexture);
