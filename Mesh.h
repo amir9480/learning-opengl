@@ -52,6 +52,8 @@ public:
 
 	static Mesh* createCone(u32 cols = 12, bool lightMesh = false);
 
+	static Mesh* createFromFile(std::string _path);
+
 	void draw(Camera* camera = nullptr, InstanceData* instanceData = nullptr, u32 count = 0, u32 size = 0);
 
 	void draw(Camera* camera, std::vector<InstanceData> instanceData);
@@ -76,6 +78,8 @@ public:
 
 	Mesh* setDiffuse(Texture* texture);
 
+	Mesh* setNormal(Texture* texture);
+
 	virtual std::string getClass() const;
 
 	u32 getInstanceVBO() const;
@@ -89,6 +93,7 @@ private:
 	CullMode mCullMode;
 	Shader*  mMaterial;
 	Texture* mDiffuse = nullptr;
+	Texture* mNormal = nullptr;
 };
 
 #endif // _MESH_H_

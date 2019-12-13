@@ -113,11 +113,13 @@ void Shader::setMatrix(std::string name, mathfu::mat4 value)
 
 void Shader::setTexture(std::string name, const Texture* value)
 {
-	static u32 index;
-	mTextures[name] = value;
-	index = std::distance(mTextures.begin(), mTextures.find(name));
-	value->use(index);
-	setInt(name, index);
+	if (value != nullptr) {
+		static u32 index;
+		mTextures[name] = value;
+		index = std::distance(mTextures.begin(), mTextures.find(name));
+		value->use(index);
+		setInt(name, index);
+	}
 }
 
 void Shader::setCustom(std::string name, void* _data, u32 _size)

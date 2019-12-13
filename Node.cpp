@@ -97,7 +97,7 @@ Node* Node::move(mathfu::vec3 _axis)
 Node* Node::rotate(mathfu::vec3 _axis, f32 _angle)
 {
 	if (_angle != 0) {
-		mRotation = mRotation * mathfu::quat::FromAngleAxis(_angle, _axis * mathfu::kRadiansToDegrees);
+		mRotation = mRotation * mathfu::quat::FromAngleAxis(_angle * mathfu::kDegreesToRadians, _axis);
 	}
 	return this;
 }

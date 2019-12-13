@@ -1,3 +1,7 @@
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include "Mesh.h"
 #include "Light.h"
 
@@ -167,6 +171,32 @@ Mesh* Mesh::createCone(u32 cols, bool lightMesh)
 	return new Mesh(vertices, indicies, lightMesh);
 }
 
+Mesh* Mesh::createFromFile(std::string _path)
+{
+	aiScene* scene = (aiScene*)aiImportFile(_path.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
+	if (scene == nullptr) {
+		ABORT("Mesh File does not exists.");
+	}
+	std::vector<Vertex> vertices;
+	std::vector<u32> indicies;
+	if (scene->mNumMeshes > 0) {
+		for (u32 i = 0; i < scene->mMeshes[0]->mNumVertices; i++) {
+			vertices.push_back(Vertex(
+				scene->mMeshes[0]->mVertices[i].x, scene->mMeshes[0]->mVertices[i].y, scene->mMeshes[0]->mVertices[i].z,
+				scene->mMeshes[0]->mTextureCoords[0][i].x, scene->mMeshes[0]->mTextureCoords[0][i].y,
+				scene->mMeshes[0]->mNormals[i].x, scene->mMeshes[0]->mNormals[i].y, scene->mMeshes[0]->mNormals[i].z
+			));
+		}
+		for (u32 i = 0; i < scene->mMeshes[0]->mNumFaces; i++) {
+			for (int j = scene->mMeshes[0]->mFaces[i].mNumIndices - 1; j >= 0 ; j--) {
+				indicies.push_back(scene->mMeshes[0]->mFaces[i].mIndices[j]);
+			}
+		}
+	}
+	Mesh* mesh = new Mesh(vertices, indicies);
+	return mesh;
+}
+
 void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count, u32 size)
 {
 	if (mMaterial && camera) {
@@ -178,6 +208,8 @@ void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count, u32 size)
 		mMaterial->setMatrix("projectionMatrix", camera->getProjection());
 		mMaterial->setMatrix("viewProjectionMatrix", camera->getViewProjection());
 		mMaterial->setTexture("diffuse", mDiffuse);
+		mMaterial->setBool("hasNormal", mNormal != nullptr);
+		mMaterial->setTexture("normalTexture", mNormal);
 	}
 
 	if (size == 0) {
@@ -370,6 +402,12 @@ Mesh* Mesh::setMaterial(Shader* material)
 Mesh* Mesh::setDiffuse(Texture* texture)
 {
 	mDiffuse = texture;
+	return this;
+}
+
+Mesh* Mesh::setNormal(Texture* texture)
+{
+	mNormal = texture;
 	return this;
 }
 

@@ -23,11 +23,13 @@ public:
 	virtual void update() override;
 	virtual void render() override;
 protected:
-	f32 mouseSens = 0.1f;
+	f32 mouseSens = 10.0f;
 
 	Shader* shader1;
 	Texture* texture1;
 	Texture* texture2;
+	Texture* towerTexture;
+	Texture* towerNormalTexture;
 	Camera* mainCamera;
 	Node* mainCameraController;
 	Scene* scene;
@@ -62,9 +64,17 @@ void MyApp::init()
 	shader1 = new Shader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
 	texture1 = new Texture("./assets/textures/wall.jpg");
 	texture2 = new Texture("./assets/textures/grass.jpg");
+	towerTexture = new Texture("./assets/models/tower/textures/Wood_Tower_Col.jpg");
+	towerNormalTexture= new Texture("./assets/models/tower/textures/Wood_Tower_Nor.jpg");
+
 
 	scene->addNode(Mesh::createPlane(300)->setDiffuse(texture2)->setName("plane_mesh")->setScale(mathfu::vec3(1000, 1000, 1000)));
 	scene->addNode(Mesh::createCone()->setDiffuse(texture1)->setName("mesh2")->setPosition(mathfu::vec3(0, 1, 1)));
+
+	scene->addNode(Mesh::createFromFile("./assets/models/tower/wooden_watch_tower2.fbx")
+		->setDiffuse(towerTexture)->setNormal(towerNormalTexture)->setScale(mathfu::vec3(3, 3, 3))
+		->setName("Tower")->rotate(mathfu::vec3(1, 0, 0), -90));
+
 	scene->find("mesh2")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh3")->setPosition(mathfu::vec3(5, 0, 5)));
 	scene->find("mesh3")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh4")->setPosition(mathfu::vec3(-5, 0, 0)));
 	scene->addNode(Mesh::createCone()->setDiffuse(texture1)->setName("mesh5")->setPosition(mathfu::vec3(-20, 1, 1)));
@@ -74,14 +84,14 @@ void MyApp::init()
 	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh9")->setPosition(mathfu::vec3(-20, 1, -20)));
 	scene->addNode(mainCameraController);
 	scene->setMainCamera(reinterpret_cast<Camera*>(mainCameraController->findChild("mainCamera")));
-	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.9, 0.95, 1.0))->setPower(0.4)->rotate(mathfu::vec3(1, 0, 0), -45.0 * mathfu::kDegreesToRadians));
-	scene->addNode((new Light(Light::Type::Spot))->setColor(mathfu::vec3(1.0, 0.5, 0.4))->setCone(90)->setRadius(20)->rotate(mathfu::vec3(0,1,0), mathfu::kPi)->setPosition(mathfu::vec3(0, 1, 10)));
-	for (int i = 0; i < 1000; i++) {
+	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.9, 0.95, 1.0))->setPower(0.4)->rotate(mathfu::vec3(1, 0, 0), -70.0));
+	scene->addNode((new Light(Light::Type::Spot))->setColor(mathfu::vec3(1.0, 0.5, 0.4))->setCone(60)->setRadius(30)->rotate(mathfu::vec3(1,0,0), -90)->setPosition(mathfu::vec3(0, 22.8, -4.2)));
+	for (int i = 0; i < 10000; i++) {
 		Node* theNewLight = (new Light(i%2 == 0 ? Light::Type::Spot : Light::Type::Point))
 			->setColor(mathfu::vec3(randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0))
-			->setRadius(randomNumber(5, 20))
+			->setRadius(randomNumber(5, 40))
 			->setCone(randomNumber(45, 170))
-			->setPosition(mathfu::vec3(randomNumber(-100, 100), randomNumber(1, 3), randomNumber(-100, 100)))
+			->setPosition(mathfu::vec3(randomNumber(-1000, 1000), randomNumber(1, 3), randomNumber(-1000, 1000)))
 			->rotate(mathfu::vec3(0, 1, 0), randomNumber(0, 360));
 		scene->addNode(theNewLight);
 	}
@@ -92,6 +102,8 @@ void MyApp::destroy()
 	delete shader1;
 	delete texture1;
 	delete texture2;
+	delete towerTexture;
+	delete towerNormalTexture;
 	delete mainCamera;
 	delete scene;
 }
