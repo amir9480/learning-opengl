@@ -1,6 +1,6 @@
 #version 330 core
 
-layout (location = 0) out vec4 GAlbedoSpec;
+layout (location = 0) out vec4 GAlbedo;
 layout (location = 1) out vec4 GNormal;
 layout (location = 2) out vec4 GTangent;
 
@@ -26,7 +26,7 @@ vec2 parallaxMapping(vec2 texCoords, vec3 viewDir)
 	float numLayers = mix(8.0, 64.0, abs(dot(vec3(0, 0, 1), viewDir)));
 	float layerDepth = 1.0 / numLayers;
 	vec2 result = texCoords;
-    vec2 p = viewDir.xy * 0.12f;
+    vec2 p = viewDir.xy * 0.07f;
 	vec2 deltaTexcoords = p / numLayers;
 	
     float currentLayerDepth = 0;
@@ -52,7 +52,7 @@ void main()
 			computedTexCoord = TexCoord;
 		}
 		if (hasNormal) {
-			mat3 TBN = mat3(Tangent, BiTangent, Normal);
+			mat3 TBN = transpose(mat3(Tangent, BiTangent, Normal));
 			vec3 bumpNormal = normalize(texture(normalTexture, computedTexCoord).rgb) * 2.0 - 1.0;
 			GNormal = vec4(normalize(TBN * bumpNormal)*0.5 + 0.5, 1);
 		} else {
@@ -63,6 +63,6 @@ void main()
 		computedTexCoord = TexCoord;
 	}
 
-	GAlbedoSpec = vec4(texture2D(diffuse, computedTexCoord).rgb, 1.0);
+	GAlbedo = vec4(texture2D(diffuse, computedTexCoord).rgb, 1.0);
 	GTangent = vec4(normalize(Tangent)*0.5 + 0.5, 1.0);
 }

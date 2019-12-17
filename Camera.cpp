@@ -61,6 +61,19 @@ Camera::~Camera()
 	glDeleteFramebuffers(1, &mPostProccessFrameBuffer);
 }
 
+void Camera::applyPostProccesses()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
+	glBindTexture(GL_TEXTURE_2D, mFinalImage->mTexture);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFinalImage->mTexture, 0);
+
+	for (auto postProccessShader : mPostProccessShaders) {
+		this->postProccess(postProccessShader.second);
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 mathfu::mat4 Camera::getView() const
 {
 	return mView;
@@ -88,17 +101,19 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* 
 	shader->setMatrix("viewInv", this->getView().Inverse());
 	shader->setMatrix("projectionInv", this->getProjection().Inverse());
 
+	glDisable(GL_DEPTH_TEST);
+	glDepthFunc(GL_NEVER);
 	glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
 	if (blend) {
-		glBindTexture(GL_TEXTURE_2D, mFinalImage->mTexture);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFinalImage->mTexture, 0);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
 	} else {
 		// Render to temp texture
 		glBindTexture(GL_TEXTURE_2D, mPostProccessTexture->mTexture);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPostProccessTexture->mTexture, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
+
 	shader->setTexture("final", mFinalImage);
 	shader->setTexture("albedo", mGBuffer["albedo"]);
 	shader->setTexture("normal", mGBuffer["normal"]);
@@ -122,6 +137,9 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* 
 		Shader::simple()->setTexture("screen", mPostProccessTexture);
 		Mesh::quad()->draw();
 	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDepthFunc(GL_LESS);
 }
 
 void Camera::setFov(const f32& _fov)

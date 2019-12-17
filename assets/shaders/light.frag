@@ -87,7 +87,7 @@ void main()
 	}
 	
 	screenCoord = (TexCoord.xy / TexCoord.w) * 0.5 + 0.5;
-	vec3 albedoPixel = texture2D(albedo, screenCoord).xyz;
+	vec4 albedoPixel = texture2D(albedo, screenCoord);
 	vec3 normalVec = texture2D(normal, screenCoord).xyz;
 	normalVec = normalize((normalVec * 2.0) - 1.0);
 	float depthValue = texture2D(depth, screenCoord).r;
@@ -101,10 +101,10 @@ void main()
 
 
 	if (lightType == LightTypeDirectional) {
-		ambient = 0.0 * albedoPixel * lightColor;
+		ambient = 0.0 * albedoPixel.rgb * lightColor;
 		diffuse *= max(0.0, dot(normalVec, -_lightDirection)) * lightColor * lightPower;
 		vec3 reflectDir = reflect(-_lightDirection, normalVec);
-		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel * lightColor * lightPower;
+		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel.rgb * lightColor * lightPower;
 	} else if (lightType == LightTypePoint) {
 		vec3 lightToPixel = normalize(worldPos - _lightPosition);
 		float lightToPixelDistance = distance(worldPos, _lightPosition);
@@ -113,7 +113,7 @@ void main()
 		diffuse *= max(0.0, dot(normalVec, -lightToPixel)) * _lightColor * att * _lightPower;
 		if (camToWorldLength < _lightRadius * 2) {
 			vec3 reflectDir = reflect(-lightToPixel, normalVec);
-			specular = clamp((clamp(3.0 * (1 - length(camToWorld) / (_lightRadius * 2)), 0, 1)) * vec3(pow(max(0, dot(normalize(camToWorld), reflectDir)), 64)) * albedoPixel * _lightColor * att * _lightPower, 0, 1);
+			specular = clamp((clamp(3.0 * (1 - length(camToWorld) / (_lightRadius * 2)), 0, 1)) * vec3(pow(max(0, dot(normalize(camToWorld), reflectDir)), 64)) * albedoPixel.rgb * _lightColor * att * _lightPower, 0, 1);
 		}
 	} else if (lightType == LightTypeSpot) {
 		vec3 lightToPixel = normalize(worldPos - _lightPosition);
@@ -123,12 +123,12 @@ void main()
 		diffuse *= max(0.0, dot(normalVec, -lightToPixel)) * _lightColor * att * _lightPower;
 		if (camToWorldLength < _lightRadius * 2) {
 			vec3 reflectDir = reflect(-lightToPixel, normalVec);
-			specular = clamp((clamp(3.0 * (1 - length(camToWorld) / (_lightRadius * 2)), 0, 1)) * vec3(pow(max(0, dot(normalize(camToWorld), reflectDir)), 64)) * albedoPixel * _lightColor * att * _lightPower, 0, 1);
+			specular = clamp((clamp(3.0 * (1 - length(camToWorld) / (_lightRadius * 2)), 0, 1)) * vec3(pow(max(0, dot(normalize(camToWorld), reflectDir)), 64)) * albedoPixel.rgb * _lightColor * att * _lightPower, 0, 1);
 		}
 	}
 
 
-	FragColor = vec4(ambient + diffuse + specular, 1);
+	FragColor = vec4(ambient + diffuse + specular, albedoPixel.a);
 	
 	//FragColor = vec4((normalVec + 0.5) / 2, 1);
 }

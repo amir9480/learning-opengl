@@ -61,7 +61,7 @@ void MyApp::init()
 	mainCamera->setPosition(mathfu::vec3(0, 1, -2));
 	mainCamera->setParent(mainCameraController);
 	mainCamera->setName("mainCamera");
-	//mainCamera->addPostProccessShader("assets/shaders/bw_fragment.frag");
+	mainCamera->addPostProccessShader("assets/shaders/bw_fragment.frag");
 	//mainCamera->addPostProccessShader("assets/shaders/red_fragment.frag");
 
 	shader1 = new Shader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
@@ -91,13 +91,13 @@ void MyApp::init()
 	scene->addNode(mainCameraController);
 	scene->setMainCamera(reinterpret_cast<Camera*>(mainCameraController->findChild("mainCamera")));
 	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.9, 0.95, 1.0))->setPower(0.4)->rotate(mathfu::vec3(1, 0, 0), -120.0));
-	scene->addNode((new Light(Light::Type::Spot))->setColor(mathfu::vec3(1.0, 0.5, 0.4))->setCone(60)->setRadius(30)->rotate(mathfu::vec3(1,0,0), -90)->setPosition(mathfu::vec3(0, 22.8, 25)));
-	for (int i = 0; i < 10000; i++) {
+	scene->addNode((new Light(Light::Type::Spot))->setColor(mathfu::vec3(1.0, 0.5, 0.4))->setCone(60)->setRadius(30)->rotate(mathfu::vec3(1,0,0), -90)->setPosition(mathfu::vec3(0, 23.8, 25.8)));
+	for (int i = 0; i < 10; i++) {
 		Node* theNewLight = (new Light(i%2 == 0 ? Light::Type::Spot : Light::Type::Point))
 			->setColor(mathfu::vec3(randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0))
 			->setRadius(randomNumber(5, 40))
 			->setCone(randomNumber(45, 170))
-			->setPosition(mathfu::vec3(randomNumber(-1000, 1000), randomNumber(1, 3), randomNumber(-1000, 1000)))
+			->setPosition(mathfu::vec3(randomNumber(-100, 100), randomNumber(1, 3), randomNumber(-100, 100)))
 			->rotate(mathfu::vec3(0, 1, 0), randomNumber(0, 360));
 		scene->addNode(theNewLight);
 	}

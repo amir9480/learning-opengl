@@ -5,6 +5,8 @@
 Shader::Shader(const char *vertexFile, const char *fragmentFile)
 {
     char tempInfo[1024];
+	mVertexFile = vertexFile;
+	mFragmentFile = fragmentFile;
     std::string vs = getFileContent(vertexFile);
     std::string fs = getFileContent(fragmentFile);
 

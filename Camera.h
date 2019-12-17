@@ -23,6 +23,8 @@ public:
 	template<typename T>
 	void render(void(T::*callback)(Camera*), T* object);
 
+	void applyPostProccesses();
+
 	mathfu::mat4 getView() const;
 
 	mathfu::mat4 getProjection() const;
@@ -42,7 +44,8 @@ public:
 
 	void addPostProccessShader(std::string _fragmentPath);
 
-	
+	// Inherited via Node
+	virtual std::string getClass() const;
 	
 private:
 	u32								mWidth;
@@ -62,9 +65,6 @@ private:
 	f32								mFov = 60.0;
 
 	void reCompute();
-
-	// Inherited via Node
-	virtual std::string getClass() const;
 };
 
 
@@ -76,24 +76,27 @@ void Camera::render(void(T::*callback)(Camera*), T* object)
 	glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mGBuffer["albedo"]->mTexture, 0);
 	glEnable(GL_DEPTH_TEST);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	(object->*callback)(this);
 	glDisable(GL_DEPTH_TEST);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
+	glBindTexture(GL_TEXTURE_2D, mPostProccessTexture->mTexture);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPostProccessTexture->mTexture, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
 	glBindTexture(GL_TEXTURE_2D, mFinalImage->mTexture);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFinalImage->mTexture, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	//Shader::simple()->use();
+	Shader::simple()->use();
+	//Shader::simple()->setTexture("screen", mGBuffer["albedo"]);
 	//Mesh::quad()->draw();
 
-	for (auto postProccessShader : mPostProccessShaders) {
+	/*for (auto postProccessShader : mPostProccessShaders) {
 		this->postProccess(postProccessShader.second);
-	}
+	}*/
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_TEST);
 }
 
 #endif// _CAMERA_H_

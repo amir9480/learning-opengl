@@ -14,6 +14,8 @@ public:
 
 	void addNode(Node* _newNode);
 
+	void addSubNodes(Node* _newNode);
+
 	void setMainCamera(Camera* _camera);
 
 	void preRender();

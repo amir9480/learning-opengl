@@ -14,12 +14,20 @@ Scene::~Scene()
 void Scene::addNode(Node* _newNode)
 {
 	mNodes.push_back(_newNode);
+	this->addSubNodes(_newNode);
+}
+
+void Scene::addSubNodes(Node* _newNode)
+{
 	if (_newNode->getTicking()) {
 		mTickingNodes.push_back(_newNode);
 	}
 	if (_newNode->getClass() == "Light" && !_newNode->getTicking()) {
 		Light* light = reinterpret_cast<Light*>(_newNode);
 		mLights.push_back(light);
+	}
+	for (Node* child : _newNode->getChildren()) {
+		this->addSubNodes(child);
 	}
 }
 
@@ -94,6 +102,13 @@ void Scene::postRender()
 
 	for (auto node : mTickingNodes) {
 		node->postRender(mMainCamera);
+	}
+
+
+	for (auto node : mTickingNodes) {
+		if (node->getClass() == "Camera") {
+			reinterpret_cast<Camera*>(node)->applyPostProccesses();
+		}
 	}
 }
 

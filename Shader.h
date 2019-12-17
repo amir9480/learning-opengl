@@ -31,6 +31,8 @@ public:
 
 	static Shader* defaultMaterial();
 
+	std::string mVertexFile;
+	std::string mFragmentFile;
 protected:
     u32 mShaderProgram = 0;
 	std::map<std::string, const Texture*> mTextures;
