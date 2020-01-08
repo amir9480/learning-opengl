@@ -11,20 +11,22 @@ Scene::~Scene()
 {
 }
 
-void Scene::addNode(Node* _newNode)
+Node* Scene::addNode(Node* _newNode)
 {
-	mNodes.push_back(_newNode);
 	this->addSubNodes(_newNode);
+	return _newNode;
 }
 
 void Scene::addSubNodes(Node* _newNode)
 {
+	_newNode->mScene = this;
+	mNodes.push_back(_newNode);
 	if (_newNode->getTicking()) {
 		mTickingNodes.push_back(_newNode);
 	}
 	if (_newNode->getClass() == "Light" && !_newNode->getTicking()) {
 		Light* light = reinterpret_cast<Light*>(_newNode);
-		mLights.push_back(light);
+		mChangedLights.push_back(light);
 	}
 	for (Node* child : _newNode->getChildren()) {
 		this->addSubNodes(child);
@@ -74,13 +76,16 @@ void Scene::renderCallback(Camera* _mainCamera)
 void Scene::postRender()
 {
 	Shader* lightShader = Shader::lightShader();
-	if (mLights.size() != mPointLightDataInstances.size() + mSpotLightDataInstances.size()) {
-		for (auto node : mLights) {
+	if (mChangedLights.size() > 0) {
+		for (auto node : mChangedLights) {
 			renderLights(node);
 		}
+		mChangedLights.clear();
 	}
-	if (mLights.size() > 0) {
-		dynamic_cast<Light*>(mLights[0])->setShaderParameters(lightShader);
+	if (mPointLightDataInstancesIndex.size() > 0) {
+		dynamic_cast<Light*>(mPointLightDataInstancesIndex.begin()->first)->setShaderParameters(lightShader);
+	} else if (mSpotLightDataInstancesIndex.size() > 0) {
+		dynamic_cast<Light*>(mSpotLightDataInstancesIndex.begin()->first)->setShaderParameters(lightShader);
 	}
 
 	static Mesh* lightSphere = nullptr;
@@ -139,12 +144,22 @@ void Scene::renderLights(Node* node)
 	Light* light = reinterpret_cast<Light*>(node);
 	light->setShaderParameters(lightShader);
 
-	if (!light->booted) {
-		light->booted = true;
-		if (light->getType() == Light::Point) {
+	if (light->getType() == Light::Point) {
+		if (mPointLightDataInstancesIndex.find(node) != mPointLightDataInstancesIndex.end()) {
+			mPointLightDataInstances[mPointLightDataInstancesIndex[node]] = light->toLightData();
+		}
+		else {
 			mPointLightDataInstances.push_back(light->toLightData());
-		} else if (light->getType() == Light::Spot) {
+			mPointLightDataInstancesIndex[node] = mPointLightDataInstances.size() - 1;
+		}
+	}
+	else if (light->getType() == Light::Spot) {
+		if (mSpotLightDataInstancesIndex.find(node) != mSpotLightDataInstancesIndex.end()) {
+			mSpotLightDataInstances[mSpotLightDataInstancesIndex[node]] = light->toLightData();
+		}
+		else {
 			mSpotLightDataInstances.push_back(light->toLightData());
+			mSpotLightDataInstancesIndex[node] = mSpotLightDataInstances.size() - 1;
 		}
 	}
 }

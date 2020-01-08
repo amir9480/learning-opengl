@@ -14,6 +14,8 @@ struct LightInstanceData : public InstanceData
 	float power = 1.0;
 	float cone = 1.0f;
 	float radius = 10.0f;
+
+	LightInstanceData operator = (const LightInstanceData& _other);
 };
 
 class Light : public Node
@@ -51,7 +53,9 @@ public:
 
 	virtual void postRender(Camera* camera = nullptr);
 
-	bool booted = false;
+	virtual void onEvent(const std::string& name);
+
+	void updateCache();
 protected:
 	Type mType;
 	mathfu::vec3 mColor = mathfu::vec3(1, 1, 1);

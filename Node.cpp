@@ -1,4 +1,5 @@
 #include "Node.h"
+#include "Scene.h"
 
 
 Node::Node()
@@ -91,6 +92,7 @@ mathfu::mat4 Node::getTransformMatrix() const
 Node* Node::move(mathfu::vec3 _axis)
 {
 	mPosition += _axis;
+	this->onEvent("move");
 	return this;
 }
 
@@ -98,6 +100,7 @@ Node* Node::rotate(mathfu::vec3 _axis, f32 _angle)
 {
 	if (_angle != 0) {
 		mRotation = mRotation * mathfu::quat::FromAngleAxis(_angle * mathfu::kDegreesToRadians, _axis);
+		this->onEvent("rotate");
 	}
 	return this;
 }
@@ -187,6 +190,10 @@ std::string Node::toString() const
 		::toString<f32>(mScale.x) + "," + ::toString<f32>(mScale.y) + "," + ::toString<f32>(mScale.z) + ")\n)\n";
 }
 
+void Node::onEvent(const std::string& name)
+{
+}
+
 Node* Node::findChild(std::string name)
 {
 	for (auto& child : mChildren) {
@@ -217,4 +224,9 @@ Node* Node::setTicking(bool _val)
 bool Node::getTicking() const
 {
 	return mTicking;
+}
+
+Scene* Node::getScene() const
+{
+	return mScene;
 }

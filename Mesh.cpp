@@ -1,6 +1,7 @@
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include "3rdparty/picosha2/picosha2.h"
 
 #include "Mesh.h"
 #include "Light.h"
@@ -38,7 +39,7 @@ Mesh::~Mesh()
 
 Mesh* Mesh::createCube()
 {
-	return new Mesh({
+	Mesh* mesh = new Mesh({
 		// back face
 		Vertex(-1.0f, -1.0f, -1.0f,  0.0f, 0.0f, 0.0f,  0.0f, -1.0f), // bottom-left
 		Vertex(1.0f,   1.0f, -1.0f,  1.0f, 1.0f, 1.0f,  0.0f, -1.0f), // top-right
@@ -70,11 +71,13 @@ Mesh* Mesh::createCube()
 		Vertex(+1.0f,  1.0f, -1.0f,  1.0f, 1.0f, 0.0f,  1.0f,  0.0f), // top-right
 		Vertex(-1.0f,  1.0f,  1.0f,  0.0f, 0.0f, 0.0f,  1.0f,  0.0f)  // bottom-left
 		}, { 1, 0, 2, 0, 1, 3, 5, 4, 6, 6, 4, 7, 9, 8, 10, 10, 8, 11, 13, 12, 14, 12, 13, 15, 17, 16, 18, 18, 16, 19, 21, 20, 22, 20, 21, 23});
+	mesh->mHash = "CUBE";
+	return mesh;
 }
 
 Mesh* Mesh::createPlane(u32 _uvRepeat)
 {
-	return new Mesh({
+	Mesh* mesh = new Mesh({
 		Vertex(-1.0f, 0.0f,  1.0f, 0.0f * _uvRepeat, 1.0f * _uvRepeat, 0.0f, 1.0f, 0.0),
 		Vertex(-1.0f, 0.0f, -1.0f, 0.0f * _uvRepeat, 0.0f * _uvRepeat, 0.0f, 1.0f, 0.0),
 		Vertex( 1.0f, 0.0f,  1.0f, 1.0f * _uvRepeat, 1.0f * _uvRepeat, 0.0f, 1.0f, 0.0),
@@ -84,6 +87,8 @@ Mesh* Mesh::createPlane(u32 _uvRepeat)
 			2, 1, 3
 		}
 	);
+	mesh->mHash = "PLANE";
+	return mesh;
 }
 
 Mesh* Mesh::createSphere(u32 rows, u32 cols, bool lightMesh)
@@ -133,7 +138,9 @@ Mesh* Mesh::createSphere(u32 rows, u32 cols, bool lightMesh)
 			}
 		}
 	}
-	return new Mesh(vertices, indicies, lightMesh);
+	Mesh* mesh = new Mesh(vertices, indicies, lightMesh);
+	mesh->mHash = "SPHERE";
+	return mesh;
 }
 
 Mesh* Mesh::createCone(u32 cols, bool lightMesh)
@@ -168,7 +175,9 @@ Mesh* Mesh::createCone(u32 cols, bool lightMesh)
 		}
 	}
 
-	return new Mesh(vertices, indicies, lightMesh);
+	Mesh* mesh = new Mesh(vertices, indicies, lightMesh);
+	mesh->mHash = "CONE";
+	return mesh;
 }
 
 Mesh* Mesh::createFromFile(std::string _path)
@@ -194,6 +203,7 @@ Mesh* Mesh::createFromFile(std::string _path)
 		}
 	}
 	Mesh* mesh = new Mesh(vertices, indicies);
+	mesh->mHash = picosha2::hash256_hex_string(_path);
 	return mesh;
 }
 
@@ -446,6 +456,11 @@ Mesh* Mesh::setDisplacment(Texture* texture)
 {
 	mDisplacement = texture;
 	return this;
+}
+
+std::string Mesh::getHash() const
+{
+	return mHash;
 }
 
 std::string Mesh::getClass() const

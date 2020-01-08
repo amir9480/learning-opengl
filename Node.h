@@ -4,9 +4,11 @@
 #include "helpers.h"
 
 class Camera;
+class Scene;
 
 class Node
 {
+	friend class Scene;
 public:
 	Node();
 	virtual ~Node();
@@ -61,12 +63,16 @@ public:
 
 	virtual std::string toString() const;
 
+	virtual void onEvent(const std::string& name);
+
 	Node* findChild(std::string name);
 
 	std::list<Node*>& getChildren();
 
 	Node* setTicking(bool _val);
 	bool getTicking() const;
+
+	Scene* getScene() const; 
 
 protected:
 	Node*						mParent = nullptr;
@@ -77,6 +83,7 @@ protected:
 	mathfu::quat				mRotation;
 	mathfu::vec3				mScale = mathfu::vec3(1.0f, 1.0f, 1.0f);
 	bool						mTicking = true;
+	Scene*						mScene = nullptr;
 };
 
 

@@ -169,6 +169,7 @@
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="3rdparty\picosha2\picosha2.h" />
     <ClInclude Include="3rdparty\stb_image.h" />
     <ClInclude Include="App.h" />
     <ClInclude Include="Camera.h" />

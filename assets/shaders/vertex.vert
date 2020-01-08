@@ -35,10 +35,10 @@ void main()
 		Tangent = normalize(aTangent * mat3x3(worldMatrix));
 	}
     Tangent = normalize(Tangent - dot(Tangent, Normal) * Normal);
-	BiTangent = normalize(cross(Tangent, Normal));
+	BiTangent = normalize(cross(Normal, Tangent));
     mat3 TBN = transpose(mat3(Tangent, BiTangent, Normal));
-    TangentCameraPos  = TBN * cameraPosition;
-    TangentFragPos  = TBN * WorldPos;
+    TangentCameraPos  =  cameraPosition * TBN;
+    TangentFragPos  = WorldPos * TBN;
 
 	TexCoord = aTexCoord;
 }

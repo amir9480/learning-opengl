@@ -96,21 +96,24 @@ public:
 
 	Mesh* setDisplacment(Texture* texture);
 
+	std::string getHash() const;
+
 	virtual std::string getClass() const;
 
 	u32 getInstanceVBO() const;
 private:
-	u32		 mVAO;
-	u32		 mVBO;
-	u32		 mInstanceVBO;
-	u32		 mEBO;
-	u32		 mVerticesCount;
-	u32		 mIndicesCount;
-	CullMode mCullMode;
-	Shader*  mMaterial;
-	Texture* mDiffuse = nullptr;
-	Texture* mNormal = nullptr;
-	Texture* mDisplacement = nullptr;
+	u32			mVAO;
+	u32			mVBO;
+	u32			mInstanceVBO;
+	u32			mEBO;
+	u32			mVerticesCount;
+	u32			mIndicesCount;
+	CullMode	mCullMode;
+	Shader*		mMaterial;
+	Texture*	mDiffuse = nullptr;
+	Texture*	mNormal = nullptr;
+	Texture*	mDisplacement = nullptr;
+	std::string mHash;
 };
 
 #endif // _MESH_H_

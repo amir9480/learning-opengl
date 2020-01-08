@@ -1,4 +1,5 @@
 #include "Light.h"
+#include "Scene.h"
 
 Light::Light(Type _type)
 	:Node()
@@ -103,4 +104,32 @@ void Light::postRender(Camera* camera)
 		lightShader->setMatrix("MVP", mathfu::mat4::Identity());
 		camera->postProccess(lightShader, true);
 	}
+}
+
+void Light::onEvent(const std::string& name)
+{
+	// If light moved or rotated then update light cache in scene
+	if (mType != Directional && (name == "move" || name == "rotate")) {
+		this->updateCache();
+	}
+}
+
+void Light::updateCache()
+{
+	if (mScene) {
+		mScene->mChangedLights.push_back(this);
+	}
+}
+
+LightInstanceData LightInstanceData::operator=(const LightInstanceData& _other)
+{
+	this->world = _other.world;
+	this->position = _other.position;
+	this->direction = _other.direction;
+	this->color = _other.color;
+	this->power = _other.power;
+	this->cone = _other.cone;
+	this->radius = _other.radius;
+
+	return *this;
 }

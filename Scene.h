@@ -8,11 +8,12 @@
 
 class Scene
 {
+	friend class Light;
 public:
 	Scene(std::string _name);
 	virtual ~Scene();
 
-	void addNode(Node* _newNode);
+	Node* addNode(Node* _newNode);
 
 	void addSubNodes(Node* _newNode);
 
@@ -37,9 +38,11 @@ protected:
 	std::list<Node*>				mNodes;
 	std::list<Node*>				mTickingNodes;
 	Camera*							mMainCamera;
-	std::vector<Light*>				mLights;
+	std::vector<Light*>				mChangedLights;
 	std::vector<LightInstanceData>	mPointLightDataInstances;
 	std::vector<LightInstanceData>	mSpotLightDataInstances;
+	std::map<Node*, u32>			mPointLightDataInstancesIndex;
+	std::map<Node*, u32>			mSpotLightDataInstancesIndex;
 };
 
 #endif // _SCENE_H_

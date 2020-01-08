@@ -26,7 +26,7 @@ vec2 parallaxMapping(vec2 texCoords, vec3 viewDir)
 	float numLayers = mix(8.0, 64.0, abs(dot(vec3(0, 0, 1), viewDir)));
 	float layerDepth = 1.0 / numLayers;
 	vec2 result = texCoords;
-    vec2 p = viewDir.xy * 0.07f;
+    vec2 p = viewDir.xy * 0.05f;
 	vec2 deltaTexcoords = p / numLayers;
 	
     float currentLayerDepth = 0;
@@ -43,18 +43,25 @@ vec2 parallaxMapping(vec2 texCoords, vec3 viewDir)
 void main()
 {
 	vec2 computedTexCoord = vec2(0, 0);
-	if (distance(cameraPosition, WorldPos) < 20) {
+	float distanceToCamera = distance(cameraPosition, WorldPos);
+	if (distanceToCamera < 20) {
 		if (hasDisplacement) {
 			computedTexCoord = parallaxMapping(TexCoord,  normalize(TangentCameraPos - TangentFragPos));
 			if(computedTexCoord.x > 1.0 || computedTexCoord.y > 1.0 || computedTexCoord.x < 0.0 || computedTexCoord.y < 0.0)
 				discard;
+			if (distanceToCamera > 15) {
+				computedTexCoord = mix(TexCoord, computedTexCoord, (20 - distanceToCamera) / 5.0);
+			}
 		} else {
 			computedTexCoord = TexCoord;
 		}
 		if (hasNormal) {
 			mat3 TBN = transpose(mat3(Tangent, BiTangent, Normal));
-			vec3 bumpNormal = normalize(texture(normalTexture, computedTexCoord).rgb) * 2.0 - 1.0;
-			GNormal = vec4(normalize(TBN * bumpNormal)*0.5 + 0.5, 1);
+			vec3 bumpNormal = normalize(texture(normalTexture, computedTexCoord).rgb * 2.0 - 1.0);
+			GNormal = vec4(normalize(bumpNormal * TBN)*0.5 + 0.5, 1);
+			if (distanceToCamera > 15) {
+				GNormal = mix(vec4(normalize(Normal)*0.5 + 0.5, 1.0), GNormal, (20 - distanceToCamera) / 5.0);
+			}
 		} else {
 			GNormal = vec4(normalize(Normal)*0.5 + 0.5, 1.0);
 		}

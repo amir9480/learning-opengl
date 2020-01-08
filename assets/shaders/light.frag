@@ -118,7 +118,10 @@ void main()
 	} else if (lightType == LightTypeSpot) {
 		vec3 lightToPixel = normalize(worldPos - _lightPosition);
 		float lightToPixelDistance = distance(worldPos, _lightPosition);
-		float att = clamp(1.0 - (lightToPixelDistance * lightToPixelDistance * lightToPixelDistance /(_lightRadius * _lightRadius)), 0.0, 1.0) * ((acos(dot(lightToPixel, _lightDirection)) < _lightCone && acos(dot(lightToPixel, _lightDirection)) > 0.0f) ? 1.0 : 0.0f);
+		float att = clamp(1.0 - (lightToPixelDistance * lightToPixelDistance * lightToPixelDistance /(_lightRadius * _lightRadius)), 0.0, 1.0);
+		float coneAtt = clamp(dot(lightToPixel, _lightDirection) / cos(_lightCone), 0, 1);
+
+		att = (att * att) * pow(coneAtt, 16);
 		
 		diffuse *= max(0.0, dot(normalVec, -lightToPixel)) * _lightColor * att * _lightPower;
 		if (camToWorldLength < _lightRadius * 2) {
