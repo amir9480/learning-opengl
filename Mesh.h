@@ -10,7 +10,7 @@ struct Vertex
 	f32 px, py, pz;
 	f32 nx, ny, nz;
 	f32 tx, ty, tz;
-	f32 u, v; 
+	f32 u, v;
 
 
 	Vertex(f32 _px, f32 _py, f32 _pz,

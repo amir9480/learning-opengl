@@ -100,6 +100,7 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* 
 	shader->setMatrix("viewProjectionInv", this->getViewProjection().Inverse());
 	shader->setMatrix("viewInv", this->getView().Inverse());
 	shader->setMatrix("projectionInv", this->getProjection().Inverse());
+	shader->setFloat2("resolution", mWidth, mHeight);
 
 	glDisable(GL_DEPTH_TEST);
 	glDepthFunc(GL_NEVER);
