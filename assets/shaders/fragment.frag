@@ -11,6 +11,7 @@ in vec3 BiTangent;
 in vec2 TexCoord;
 in vec3 TangentCameraPos;
 in vec3 TangentFragPos;
+in vec3 ToCamera;
 
 uniform mat4 MVP;
 uniform vec3 cameraPosition;
@@ -26,7 +27,7 @@ vec2 parallaxMapping(vec2 texCoords, vec3 viewDir)
 	float numLayers = mix(8.0, 64.0, abs(dot(vec3(0, 0, 1), viewDir)));
 	float layerDepth = 1.0 / numLayers;
 	vec2 result = texCoords;
-    vec2 p = viewDir.xy * 0.05f;
+    vec2 p = viewDir.xy * 0.04f;
 	vec2 deltaTexcoords = p / numLayers;
 	
     float currentLayerDepth = 0;
@@ -34,7 +35,6 @@ vec2 parallaxMapping(vec2 texCoords, vec3 viewDir)
 
 	while (currentLayerDepth < currentDepthMapValue) {
 		result -= deltaTexcoords;
-		currentDepthMapValue = texture(displacement, texCoords).r;
 		currentLayerDepth += layerDepth;
 	}
     return result;   
@@ -44,13 +44,13 @@ void main()
 {
 	vec2 computedTexCoord = vec2(0, 0);
 	float distanceToCamera = distance(cameraPosition, WorldPos);
-	if (distanceToCamera < 20) {
+	if (distanceToCamera < 50) {
 		if (hasDisplacement) {
-			computedTexCoord = parallaxMapping(TexCoord,  normalize(TangentCameraPos - TangentFragPos));
+			computedTexCoord = parallaxMapping(TexCoord,  normalize(ToCamera));
 			if(computedTexCoord.x > 1.0 || computedTexCoord.y > 1.0 || computedTexCoord.x < 0.0 || computedTexCoord.y < 0.0)
 				discard;
-			if (distanceToCamera > 15) {
-				computedTexCoord = mix(TexCoord, computedTexCoord, (20 - distanceToCamera) / 5.0);
+			if (distanceToCamera > 40) {
+				computedTexCoord = mix(TexCoord, computedTexCoord, (50 - distanceToCamera) / 10.0);
 			}
 		} else {
 			computedTexCoord = TexCoord;
@@ -59,11 +59,13 @@ void main()
 			mat3 TBN = transpose(mat3(Tangent, BiTangent, Normal));
 			vec3 bumpNormal = normalize(texture(normalTexture, computedTexCoord).rgb * 2.0 - 1.0);
 			GNormal = vec4(normalize(bumpNormal * TBN)*0.5 + 0.5, 1);
-			if (distanceToCamera > 15) {
-				GNormal = mix(vec4(normalize(Normal)*0.5 + 0.5, 1.0), GNormal, (20 - distanceToCamera) / 5.0);
+			GTangent = vec4(normalize((BiTangent * (GNormal.xyz * 2.0 - 1.0)) * TBN)*0.5 + 0.5, 1);
+			if (distanceToCamera > 40) {
+				GNormal = mix(vec4(normalize(Normal)*0.5 + 0.5, 1.0), GNormal, (50 - distanceToCamera) / 10.0);
 			}
 		} else {
 			GNormal = vec4(normalize(Normal)*0.5 + 0.5, 1.0);
+			GTangent = vec4(normalize(Tangent)*0.5 + 0.5, 1.0);
 		}
 	} else {
 		GNormal = vec4(normalize(Normal)*0.5 + 0.5, 1.0);
@@ -71,5 +73,4 @@ void main()
 	}
 
 	GAlbedo = vec4(texture2D(diffuse, computedTexCoord).rgb, 1.0);
-	GTangent = vec4(normalize(Tangent)*0.5 + 0.5, 1.0);
 }

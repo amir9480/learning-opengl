@@ -17,7 +17,8 @@ public:
     void setFloat(std::string name, float value);
     void setFloat2(std::string name, float value1, float value2);
     void setFloat3(std::string name, mathfu::vec3 value);
-    void setFloat3(std::string name, float value1, float value2, float value3);
+	void setFloat3(std::string name, float value1, float value2, float value3);
+	void setFloat4(std::string name, mathfu::vec4 value);
     void setFloat4(std::string name, float value1, float value2, float value3, float value4);
     void setMatrix(std::string name, mathfu::mat4 value);
 	void setTexture(std::string name, const Texture* value);
@@ -30,6 +31,8 @@ public:
 	static Shader* lightShader();
 
 	static Shader* defaultMaterial();
+
+	static Shader* ambientLightShader();
 
 	std::string mVertexFile;
 	std::string mFragmentFile;

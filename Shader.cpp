@@ -107,6 +107,12 @@ void Shader::setFloat4(std::string name, float value1, float value2, float value
     glUniform4f(glGetUniformLocation(mShaderProgram, name.c_str()), value1, value2, value3, value4);
 }
 
+void Shader::setFloat4(std::string name, mathfu::vec4 value)
+{
+	use();
+	glUniform4f(glGetUniformLocation(mShaderProgram, name.c_str()), value.x, value.y, value.z, value.w);
+}
+
 void Shader::setMatrix(std::string name, mathfu::mat4 value)
 {
 	use();
@@ -163,4 +169,10 @@ Shader* Shader::defaultMaterial()
 {
 	static Shader* defaultMaterial = new Shader("assets/shaders/vertex.vert", "assets/shaders/fragment.frag");
 	return defaultMaterial;
+}
+
+Shader* Shader::ambientLightShader()
+{
+	static Shader* ambientShader = new Shader("assets/shaders/simple_vertex.vert", "assets/shaders/ambient.frag");
+	return ambientShader;
 }

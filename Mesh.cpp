@@ -360,38 +360,44 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(6 * sizeof(float)));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(9 * sizeof(float)));
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(9 * sizeof(float)));
+
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(11 * sizeof(float)));
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(5, 4, GL_UNSIGNED_INT, GL_FALSE, sizeof(Vertex), (void*)(15 * sizeof(float)));
+	
 
 	glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
 	if (lightMesh) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(LightInstanceData), (void*)0, GL_DYNAMIC_DRAW);
 		for (u32 i = 0; i < 4; i++) {
-			glEnableVertexAttribArray(4 + i);
-			glVertexAttribPointer(4 + i, 4, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(4 * i * sizeof(float)));
-			glVertexAttribDivisor(4 + i, 1);
+			glEnableVertexAttribArray(6 + i);
+			glVertexAttribPointer(6 + i, 4, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(4 * i * sizeof(float)));
+			glVertexAttribDivisor(6 + i, 1);
 		}
 		for (u32 i = 0; i < 3; i++) {
-			glEnableVertexAttribArray(8 + i);
-			glVertexAttribPointer(8 + i, 3, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, position)) + (i * sizeof(mathfu::vec3))));
-			glVertexAttribDivisor(8 + i, 1);
+			glEnableVertexAttribArray(10 + i);
+			glVertexAttribPointer(10 + i, 3, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, position)) + (i * sizeof(mathfu::vec3))));
+			glVertexAttribDivisor(10 + i, 1);
 		}
 		for (u32 i = 0; i < 3; i++) {
-			glEnableVertexAttribArray(11 + i);
-			glVertexAttribPointer(11 + i, 1, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, power)) + (i * sizeof(float))));
-			glVertexAttribDivisor(11 + i, 1);
+			glEnableVertexAttribArray(13 + i);
+			glVertexAttribPointer(13 + i, 1, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, power)) + (i * sizeof(float))));
+			glVertexAttribDivisor(13 + i, 1);
 		}
 	}else {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData), (void*)0, GL_DYNAMIC_DRAW);
 		for (u32 i = 0; i < 4; i++) {
-			glEnableVertexAttribArray(4 + i);
-			glVertexAttribPointer(4 + i, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (void*)(4 * i * sizeof(float)));
-			glVertexAttribDivisor(4 + i, 1);
+			glEnableVertexAttribArray(6 + i);
+			glVertexAttribPointer(6 + i, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (void*)(4 * i * sizeof(float)));
+			glVertexAttribDivisor(6 + i, 1);
 		}
 	}
 

@@ -76,6 +76,7 @@ void Scene::renderCallback(Camera* _mainCamera)
 void Scene::postRender()
 {
 	Shader* lightShader = Shader::lightShader();
+	Shader* ambientShader = Shader::ambientLightShader();
 	if (mChangedLights.size() > 0) {
 		for (auto node : mChangedLights) {
 			renderLights(node);
@@ -87,6 +88,9 @@ void Scene::postRender()
 	} else if (mSpotLightDataInstancesIndex.size() > 0) {
 		dynamic_cast<Light*>(mSpotLightDataInstancesIndex.begin()->first)->setShaderParameters(lightShader);
 	}
+
+	ambientShader->setFloat4("color", mAmbientColor);
+	mMainCamera->postProccess(ambientShader, true);
 
 	static Mesh* lightSphere = nullptr;
 	if (lightSphere == nullptr) {
@@ -136,6 +140,16 @@ Node* Scene::find(std::string name)
 std::list<Node*>& Scene::getNodes()
 {
 	return mNodes;
+}
+
+void Scene::setAmbientColor(const mathfu::vec4& _color)
+{
+	mAmbientColor = _color;
+}
+
+mathfu::vec4 Scene::getAmbientColor() const
+{
+	return mAmbientColor;
 }
 
 void Scene::renderLights(Node* node)

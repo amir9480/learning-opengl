@@ -47,6 +47,7 @@ public:
 	// Inherited via Node
 	virtual std::string getClass() const;
 	
+	std::string renderType = "final";
 private:
 	u32								mWidth;
 	u32								mHeight;

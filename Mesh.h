@@ -11,6 +11,8 @@ struct Vertex
 	f32 nx, ny, nz;
 	f32 tx, ty, tz;
 	f32 u, v;
+	f32 boneWeights[4] = { 0 };
+	u32 bondId[4] = { 0 };
 
 
 	Vertex(f32 _px, f32 _py, f32 _pz,

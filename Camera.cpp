@@ -63,15 +63,9 @@ Camera::~Camera()
 
 void Camera::applyPostProccesses()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
-	glBindTexture(GL_TEXTURE_2D, mFinalImage->mTexture);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFinalImage->mTexture, 0);
-
 	for (auto postProccessShader : mPostProccessShaders) {
 		this->postProccess(postProccessShader.second);
 	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 mathfu::mat4 Camera::getView() const
@@ -105,6 +99,8 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* 
 	glDisable(GL_DEPTH_TEST);
 	glDepthFunc(GL_NEVER);
 	glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
+	glBindTexture(GL_TEXTURE_2D, mFinalImage->mTexture);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFinalImage->mTexture, 0);
 	if (blend) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
@@ -140,6 +136,7 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* 
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 }
 
@@ -189,9 +186,18 @@ void Camera::draw() const
 	Shader::simple()->use();
 	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	//Shader::simple()->setTexture("screen", getGbuffer("normal"));
-	Shader::simple()->setTexture("screen", mFinalImage);
+	glDisable(GL_DEPTH_TEST);
+	 if (renderType == "depth") {
+		 Shader::simple()->setInt("depth", 1);
+		 Shader::simple()->setTexture("screen", mDepth);
+	 } else if (mGBuffer.find(renderType) == mGBuffer.end()) {
+		Shader::simple()->setTexture("screen", mFinalImage);
+     } else {
+		Shader::simple()->setTexture("screen", getGbuffer(renderType));
+	 }
 	Mesh::quad()->draw();
+	Shader::simple()->setInt("depth", 0);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void Camera::addPostProccessShader(std::string _fragmentPath)

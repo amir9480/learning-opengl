@@ -17,6 +17,9 @@
 #include <mathfu/matrix.h>
 #include <mathfu/constants.h>
 #include <mathfu/glsl_mappings.h>
+#include <imgui.h>
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_glfw.h"
 #include "3rdparty/includes/stb_image.h"
 
 #define ABORT(MSG) std::cout<<"ERROR "<<MSG<<"\n\nFile:"<<__FILE__<<"("<<__LINE__<<")"<<std::endl;exit(-1);
@@ -24,6 +27,7 @@
 
 #define WINDOW_WIDTH 1360
 #define WINDOW_HEIGHT 768
+#define WINDOW_FULL_SCREEN false
 
 typedef unsigned char u8;
 typedef unsigned int u16;

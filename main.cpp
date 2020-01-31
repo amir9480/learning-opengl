@@ -22,6 +22,7 @@ public:
 	virtual void destroy() override;
 	virtual void update() override;
 	virtual void render() override;
+	virtual void renderGUI() override;
 protected:
 	f32 mouseSens = 10.0f;
 
@@ -57,8 +58,9 @@ MyApp::MyApp():
 void MyApp::init()
 {
 	scene = new Scene("level1");
+	scene->setAmbientColor(mathfu::vec4(0.15, 0.2, 0.3, 1.0));
 	mainCameraController = (new Node())->setName("cameraController");
-	mainCamera = new Camera(1368, 768, Camera::ProjectionType::Perspective, 4.0/3.0);
+	mainCamera = new Camera(WINDOW_WIDTH, WINDOW_HEIGHT, Camera::ProjectionType::Perspective, 4.0/3.0);
 	mainCamera->setPosition(mathfu::vec3(0, 1, -2));
 	mainCamera->setParent(mainCameraController);
 	mainCamera->setName("mainCamera");
@@ -94,7 +96,7 @@ void MyApp::init()
 	scene->addNode(mainCameraController);
 	scene->setMainCamera(reinterpret_cast<Camera*>(mainCameraController->findChild("mainCamera")));
 	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.9, 0.95, 1.0))->setPower(0.4)->rotate(mathfu::vec3(1, 0, 0), -120.0));
-	spotLight = scene->addNode((new Light(Light::Type::Spot))->setColor(mathfu::vec3(1.0, 0.5, 0.4))->setCone(80)->setPower(3)->setRadius(30)->rotate(mathfu::vec3(1,0,0), -90)->setPosition(mathfu::vec3(0, 23.8, 25.8))->setName("theSpotLight"));
+	spotLight = scene->addNode((new Light(Light::Type::Spot))->setColor(mathfu::vec3(1.0, 0.5, 0.4))->setCone(80)->setPower(3)->setRadius(30)->rotate(mathfu::vec3(1,0,0), -90)->setPosition(mathfu::vec3(0, 23.0, 25.8))->setName("theSpotLight"));
 	for (int i = 0; i < 50; i++) {
 		Node* theNewLight = (new Light(i%2 == 0 ? Light::Type::Spot : Light::Type::Point))
 			->setColor(mathfu::vec3(randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0))
@@ -134,7 +136,7 @@ void MyApp::update()
 	}
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE)) {
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			scene->find("theSpotLight")->move(mathfu::vec3(0, 0, 1) * speed * this->deltaTime);
+			scene->find("theSpotLight")->move(mathfu::vec3(0, 0, 1) * speed  * this->deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 			scene->find("theSpotLight")->move(mathfu::vec3(0, 0, -1) * speed * this->deltaTime);
@@ -152,13 +154,13 @@ void MyApp::update()
 			scene->find("theSpotLight")->move(mathfu::vec3(0, -1, 0) * speed * this->deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-			scene->find("theSpotLight")->rotate(mathfu::vec3(0, 0, 1), this->deltaTime * 30);
+			scene->find("theSpotLight")->rotate(mathfu::vec3(0, 0, 1), speed * this->deltaTime * 30);
 		}
 		if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-			scene->find("theSpotLight")->rotate(mathfu::vec3(1, 0, 0), this->deltaTime * 30);
+			scene->find("theSpotLight")->rotate(mathfu::vec3(1, 0, 0), speed * this->deltaTime * 30);
 		}
 		if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
-			scene->find("theSpotLight")->rotate(mathfu::vec3(0, 1, 0), this->deltaTime * 30);
+			scene->find("theSpotLight")->rotate(mathfu::vec3(0, 1, 0), speed * this->deltaTime * 30);
 		}
 	} else if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) {
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -208,6 +210,24 @@ void MyApp::update()
 			mainCamera->move(mainCamera->getDown() * speed * this->deltaTime);
 		}
 	}
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS) {
+		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+			mainCamera->renderType = "final";
+		}
+		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+			mainCamera->renderType = "depth";
+		}
+		if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+			mainCamera->renderType = "albedo";
+		}
+		if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
+			mainCamera->renderType = "normal";
+		}
+		if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS) {
+			mainCamera->renderType = "tangent";
+		}
+	}
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
 		mainCameraController->rotate(mainCameraController->getLeft().Normalized(), -mouseDeltaY * mouseSens * this->deltaTime);
 		mainCamera->rotate(mathfu::vec3(0, 1, 0), mouseDeltaX * mouseSens * this->deltaTime);
@@ -223,6 +243,41 @@ void MyApp::render()
 	scene->render();
 	scene->postRender();
     mainCamera->draw();
+}
+
+void MyApp::renderGUI()
+{
+	{
+		static float f = 0.0f;
+		static float f2 = 0.0f;
+		static float f3 = 0.0f;
+		static float f4 = 0.0f;
+		static int counter = 0;
+		static bool hovered;
+
+		ImGui::Begin("Hello, world!"); 
+		hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_AnyWindow);
+
+		ImGui::Text("This is some useful text."); 
+
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+		ImGui::Columns(3);
+		ImGui::DragFloat("X", &f2, 0.1f);
+		ImGui::NextColumn();
+		ImGui::DragFloat("Y", &f3, 0.1f);
+		ImGui::NextColumn();
+		ImGui::DragFloat("Z", &f4, 0.1f);
+		ImGui::Columns(1);
+
+		if (ImGui::Button("Button"))                          
+			counter++;
+		ImGui::SameLine();
+		ImGui::Text("counter = %d", counter);
+
+		ImGui::Text(hovered ? "Is Hover" : "Is not hover");
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		ImGui::End();
+	}
 }
 
 std::ostream& operator << (std::ostream& ostream, mathfu::vec3 vec)

@@ -11,6 +11,6 @@ void main()
 {
 	FragColor = texture2D(final, TexCoord);
 	if (texture2D(final, TexCoord).a <= 0.0001) {
-		FragColor = vec4(0.1,0.1,0.1,1);
+		FragColor = vec4(0.1,0.1,0.3,1);
 	}
 }

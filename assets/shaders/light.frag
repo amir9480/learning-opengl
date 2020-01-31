@@ -96,12 +96,10 @@ void main()
 	float camToWorldLength = length(worldPos - camPos);
 
 	vec3 diffuse = albedoPixel.rgb;
-	vec3 ambient = vec3(0, 0, 0);
 	vec3 specular = vec3(0, 0, 0);
 
 
 	if (lightType == LightTypeDirectional) {
-		ambient = 0.0 * albedoPixel.rgb * lightColor;
 		diffuse *= max(0.0, dot(normalVec, -_lightDirection)) * lightColor * lightPower;
 		vec3 reflectDir = reflect(-_lightDirection, normalVec);
 		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel.rgb * lightColor * lightPower;
@@ -131,7 +129,7 @@ void main()
 	}
 
 
-	FragColor = vec4(ambient + diffuse + specular, albedoPixel.a);
+	FragColor = vec4(diffuse + specular, albedoPixel.a);
 	
 	//FragColor = vec4((normalVec + 0.5) / 2, 1);
 }

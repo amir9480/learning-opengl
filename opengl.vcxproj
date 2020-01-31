@@ -158,8 +158,13 @@
   <ItemGroup>
     <ClCompile Include="3rdparty\glad\src\glad.c" />
     <ClCompile Include="App.cpp" />
+    <Text Include="assets\shaders\ambient.frag">
+      <FileType>Document</FileType>
+    </Text>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="helpers.cpp" />
+    <ClCompile Include="imgui_impl_glfw.cpp" />
+    <ClCompile Include="imgui_impl_opengl3.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -174,6 +179,8 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="helpers.h" />
+    <ClInclude Include="imgui_impl_glfw.h" />
+    <ClInclude Include="imgui_impl_opengl3.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Node.h" />

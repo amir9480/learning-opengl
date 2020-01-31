@@ -14,9 +14,13 @@ public:
 
 	virtual void init();
 
+	void initGUI();
+
 	virtual void update();
 
 	virtual void render();
+
+	virtual void renderGUI();
 
 	virtual void destroy();
 

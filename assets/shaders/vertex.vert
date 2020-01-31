@@ -3,7 +3,9 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec3 aTangent;
 layout (location = 3) in vec2 aTexCoord;
-layout (location = 4) in mat4 instancedWorld;
+layout (location = 4) in vec4 aBoneWeights;
+layout (location = 5) in uint aBoneIds[4];
+layout (location = 6) in mat4 instancedWorld;
 
 out vec3 WorldPos;
 out vec3 Normal;
@@ -12,6 +14,7 @@ out vec3 BiTangent;
 out vec2 TexCoord;
 out vec3 TangentCameraPos;
 out vec3 TangentFragPos;
+out vec3 ToCamera;
 
 uniform bool instancing = false;
 uniform mat4 MVP;
@@ -37,8 +40,9 @@ void main()
     Tangent = normalize(Tangent - dot(Tangent, Normal) * Normal);
 	BiTangent = normalize(cross(Normal, Tangent));
     mat3 TBN = transpose(mat3(Tangent, BiTangent, Normal));
-    TangentCameraPos  =  cameraPosition * TBN;
-    TangentFragPos  = WorldPos * TBN;
+    TangentCameraPos = cameraPosition;
+    TangentFragPos = WorldPos;
+	ToCamera = normalize(cameraPosition - WorldPos) * TBN;
 
 	TexCoord = aTexCoord;
 }

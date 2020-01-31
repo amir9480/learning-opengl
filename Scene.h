@@ -30,6 +30,9 @@ public:
 	Node* find(std::string name);
 
 	std::list<Node*>& getNodes();
+
+	void setAmbientColor(const mathfu::vec4& _color);
+	mathfu::vec4 getAmbientColor() const;
 protected:
 	void renderLights(Node* node);
 
@@ -43,6 +46,7 @@ protected:
 	std::vector<LightInstanceData>	mSpotLightDataInstances;
 	std::map<Node*, u32>			mPointLightDataInstancesIndex;
 	std::map<Node*, u32>			mSpotLightDataInstancesIndex;
+	mathfu::vec4					mAmbientColor;
 };
 
 #endif // _SCENE_H_
