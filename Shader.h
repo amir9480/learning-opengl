@@ -21,6 +21,7 @@ public:
 	void setFloat4(std::string name, mathfu::vec4 value);
     void setFloat4(std::string name, float value1, float value2, float value3, float value4);
     void setMatrix(std::string name, mathfu::mat4 value);
+	void setMatrixArray(std::string name, const std::vector<mathfu::mat4>& value);
 	void setTexture(std::string name, const Texture* value);
 	void setCustom(std::string name, void* _data, u32 _size);
 

@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <random>
+#include <math.h>
 #include <time.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

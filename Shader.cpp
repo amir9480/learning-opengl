@@ -58,6 +58,9 @@ Shader::Shader(const char *vertexFile, const char *fragmentFile)
 Shader::~Shader()
 {
     glDeleteProgram(mShaderProgram);
+    for (auto bufferData : mBufferDatas) {
+        glDeleteBuffers(1, &bufferData.second);
+    }
 }
 
 bool Shader::propertyExists(std::string name) const
@@ -119,6 +122,12 @@ void Shader::setMatrix(std::string name, mathfu::mat4 value)
     glUniformMatrix4fv(glGetUniformLocation(mShaderProgram, name.c_str()), 1, false, (float*)&value);
 }
 
+void Shader::setMatrixArray(std::string name, const std::vector<mathfu::mat4>& value)
+{
+	use();
+	glUniformMatrix4fv(glGetUniformLocation(mShaderProgram, name.c_str()), value.size(), false, (float*)value.data());
+}
+
 void Shader::setTexture(std::string name, const Texture* value)
 {
 	if (value != nullptr) {
@@ -139,11 +148,12 @@ void Shader::setCustom(std::string name, void* _data, u32 _size)
 		mBufferDatas[name] = uniformBuffer;
 	}
 	glBindBuffer(GL_UNIFORM_BUFFER, mBufferDatas[name]);
-	glBufferData(GL_UNIFORM_BUFFER, _size, _data, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, _size, 0, GL_STATIC_DRAW);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, _size, _data);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	u32 index = std::distance(mTextures.begin(), mTextures.find(name));
+	u32 index = std::distance(mBufferDatas.begin(), mBufferDatas.find(name));
 	use();
-	setInt(name, index);
+	setInt(name, mBufferDatas[name]);
 }
 
 void Shader::use()

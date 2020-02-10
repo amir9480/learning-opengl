@@ -124,7 +124,7 @@ void main()
 		diffuse *= max(0.0, dot(normalVec, -lightToPixel)) * _lightColor * att * _lightPower;
 		if (camToWorldLength < _lightRadius * 2) {
 			vec3 reflectDir = reflect(-lightToPixel, normalVec);
-			specular = clamp((clamp(3.0 * (1 - length(camToWorld) / (_lightRadius * 2)), 0, 1)) * vec3(pow(max(0, dot(normalize(camToWorld), reflectDir)), 64)) * albedoPixel.rgb * _lightColor * att * _lightPower, 0, 1);
+			specular = clamp((clamp(3.0 * (1 - length(camToWorld) / (_lightRadius * 10)), 0, 1)) * vec3(pow(max(0, dot(normalize(camToWorld), reflectDir)), 64)) * albedoPixel.rgb * _lightColor * att * _lightPower, 0, 1);
 		}
 	}
 

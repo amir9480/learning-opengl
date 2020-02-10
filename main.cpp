@@ -38,6 +38,7 @@ protected:
 	Node* mainCameraController;
 	Node* spotLight = nullptr;
 	Scene* scene;
+	Mesh* robot = nullptr;
 };
 
 
@@ -85,6 +86,8 @@ void MyApp::init()
 	scene->addNode(Mesh::createFromFile("./assets/models/tower/wooden_watch_tower2.fbx")
 		->setDiffuse(towerTexture)->setNormal(towerNormalTexture)->setScale(mathfu::vec3(3, 3, 3))->setPosition(mathfu::vec3(0, 0, 30))
 		->setName("Tower")->rotate(mathfu::vec3(1, 0, 0), -90));
+
+	robot = (Mesh*)(scene->addNode(Mesh::createFromFile("./assets/models/robot/robot.fbx")->setScale(mathfu::vec3(0.1, 0.1, 0.1))->setName("robot")));
 
 	scene->find("mesh2")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh3")->setPosition(mathfu::vec3(5, 0, 5)));
 	scene->find("mesh3")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh4")->setPosition(mathfu::vec3(-5, 0, 0)));

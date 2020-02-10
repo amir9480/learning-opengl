@@ -1,10 +1,28 @@
-#include <assimp/cimport.h>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include "3rdparty/picosha2/picosha2.h"
 
 #include "Mesh.h"
+#include "3rdparty/picosha2/picosha2.h"
 #include "Light.h"
+
+aiMatrix4x4 interpolateTranslation(f32 time, const aiNodeAnim* _animNode);
+aiMatrix4x4 interpolateRotation(f32 time, const aiNodeAnim* _animNode);
+aiMatrix4x4 interpolateScale(f32 time, const aiNodeAnim* _animNode);
+
+mathfu::mat4 fromAssimpMat(const aiMatrix4x4& m) {
+	return mathfu::mat4(
+		m.a1, m.b1, m.c1, m.d1,
+		m.a2, m.b2, m.c2, m.d2,
+		m.a3, m.b3, m.c3, m.d3,
+		m.a4, m.b4, m.c4, m.d4
+	);
+}
+aiMatrix4x4 toAssimpMat(const mathfu::mat4& m) {
+	return aiMatrix4x4(
+		m[0], m[1], m[2], m[3],
+		m[4], m[5], m[6], m[7],
+		m[8], m[9], m[10], m[11],
+		m[12], m[13], m[14], m[15]
+	);
+}
 
 Mesh::Mesh():
 	Node(),
@@ -46,10 +64,10 @@ Mesh* Mesh::createCube()
 		Vertex(1.0f,  -1.0f, -1.0f,  1.0f, 0.0f, 1.0f,  0.0f, -1.0f), // bottom-right
 		Vertex(-1.0f,  1.0f, -1.0f,  0.0f, 1.0f, 0.0f,  0.0f, -1.0f), // top-left
 		// front face
-		Vertex(-1.0f, -1.0f,  1.0f,  0.0f, 0.0f, 0.0f,  0.0f,  1.0f), // bottom-left
-		Vertex(+1.0f, -1.0f,  1.0f,  1.0f, 0.0f, 0.0f,  0.0f,  1.0f), // bottom-right
-		Vertex(+1.0f,  1.0f,  1.0f,  1.0f, 1.0f, 0.0f,  0.0f,  1.0f), // top-right
-		Vertex(-1.0f,  1.0f,  1.0f,  0.0f, 1.0f, 0.0f,  0.0f,  1.0f), // top-left
+		Vertex(-1.0f, -1.0f,  1.0f,  1.0f, 1.0f, 0.0f,  0.0f,  1.0f), // bottom-left
+		Vertex(+1.0f, -1.0f,  1.0f,  0.0f, 1.0f, 0.0f,  0.0f,  1.0f), // bottom-right
+		Vertex(+1.0f,  1.0f,  1.0f,  0.0f, 0.0f, 0.0f,  0.0f,  1.0f), // top-right
+		Vertex(-1.0f,  1.0f,  1.0f,  1.0f, 0.0f, 0.0f,  0.0f,  1.0f), // top-left
 		// left face
 		Vertex(-1.0f,  1.0f,  1.0f,  1.0f, 0.0f, -1.0f,  0.0f,  0.0f), // top-right
 		Vertex(-1.0f,  1.0f, -1.0f,  1.0f, 1.0f, -1.0f,  0.0f,  0.0f), // top-left
@@ -186,25 +204,95 @@ Mesh* Mesh::createFromFile(std::string _path)
 	if (scene == nullptr) {
 		ABORT("Mesh File does not exists.");
 	}
+	std::vector<Bone> bones;
 	std::vector<Vertex> vertices;
 	std::vector<u32> indicies;
 	if (scene->mNumMeshes > 0) {
-		for (u32 i = 0; i < scene->mMeshes[0]->mNumVertices; i++) {
-			vertices.push_back(Vertex(
-				scene->mMeshes[0]->mVertices[i].x, scene->mMeshes[0]->mVertices[i].y, scene->mMeshes[0]->mVertices[i].z,
-				scene->mMeshes[0]->mTextureCoords[0][i].x, scene->mMeshes[0]->mTextureCoords[0][i].y,
-				scene->mMeshes[0]->mNormals[i].x, scene->mMeshes[0]->mNormals[i].y, scene->mMeshes[0]->mNormals[i].z
-			));
+		aiMesh* imesh = scene->mMeshes[0];
+		for (u32 i = 0; i < imesh->mNumVertices; i++) {
+			Vertex vertex = Vertex(
+				imesh->mVertices[i].x, imesh->mVertices[i].y, imesh->mVertices[i].z,
+				imesh->mTextureCoords[0][i].x, imesh->mTextureCoords[0][i].y,
+				imesh->mNormals[i].x, imesh->mNormals[i].y, imesh->mNormals[i].z
+			);
+
+			vertices.push_back(vertex);
 		}
-		for (u32 i = 0; i < scene->mMeshes[0]->mNumFaces; i++) {
-			for (int j = scene->mMeshes[0]->mFaces[i].mNumIndices - 1; j >= 0 ; j--) {
-				indicies.push_back(scene->mMeshes[0]->mFaces[i].mIndices[j]);
+		for (u32 i = 0; i < imesh->mNumFaces; i++) {
+			for (int j = imesh->mFaces[i].mNumIndices - 1; j >= 0 ; j--) {
+				indicies.push_back(imesh->mFaces[i].mIndices[j]);
+			}
+		}
+		if (imesh->HasBones()) {
+			for (int i = 0; i < imesh->mNumBones; i++) {
+				u32 newIndex = -1;
+				for (int j = 0; j < bones.size(); j++) {
+					if (bones[j].name == imesh->mBones[i]->mName.C_Str()) {
+						newIndex = j;
+						break;
+					}
+				}
+				if (newIndex == -1) {
+					bones.push_back(Bone());
+					newIndex = bones.size() - 1;
+				}
+				bones[newIndex].name = imesh->mBones[i]->mName.C_Str();
+				bones[newIndex].trans = fromAssimpMat(imesh->mBones[i]->mOffsetMatrix).Transpose();
+				for (int j = 0; j < imesh->mBones[i]->mNumWeights; j++) {
+					if (imesh->mBones[i]->mWeights[j].mVertexId < vertices.size()) {
+						for (int k = 0; k < 4; k++) {
+							if (vertices[imesh->mBones[i]->mWeights[j].mVertexId].boneWeights[k] == 0.0f) {
+								vertices[imesh->mBones[i]->mWeights[j].mVertexId].boneWeights[k] = imesh->mBones[i]->mWeights[j].mWeight;
+								vertices[imesh->mBones[i]->mWeights[j].mVertexId].bondId[k] = newIndex;
+								break;
+							}
+						}
+					}
+				}
 			}
 		}
 	}
 	Mesh* mesh = new Mesh(vertices, indicies);
 	mesh->mHash = picosha2::hash256_hex_string(_path);
+	mesh->mBones.swap(bones);
+	mesh->mBonesData.resize(mesh->mBones.size());
+	for (int i = 0; i < mesh->mBones.size(); i++) {
+		mesh->mBonesData[i] = mesh->mBones[i].trans;
+	}
+	mesh->mScene = scene;
+	if (scene->mNumAnimations > 0) {
+		mesh->mCurrentAnimation = scene->mAnimations[0];
+	}
 	return mesh;
+}
+
+void Mesh::readNodeHierarchy(const f32& _animationTime, const aiNode* _node, const aiMatrix4x4& parentTransform)
+{
+	aiMatrix4x4 trans = _node->mTransformation;
+	const aiNodeAnim* nodeAnim = findNodeAnimation(mCurrentAnimation, _node->mName.C_Str());
+	if (nodeAnim) {
+		trans = interpolateTranslation(_animationTime, nodeAnim) * interpolateRotation(_animationTime, nodeAnim) * interpolateScale(_animationTime, nodeAnim);
+	}
+	aiMatrix4x4 globalTrans =  trans.Transpose() * aiMatrix4x4(parentTransform);
+	for (int i = 0; i < mBones.size(); i++) {
+		if (mBones[i].name == _node->mName.C_Str()) {
+			mBonesData[i] = mBones[i].trans * fromAssimpMat(globalTrans);
+			break;
+		}
+	}
+	for (int i = 0; i < _node->mNumChildren; i++) {
+		readNodeHierarchy(_animationTime, _node->mChildren[i], globalTrans);
+	}
+}
+
+const aiNodeAnim* Mesh::findNodeAnimation(const aiAnimation* _animation, const std::string& _name) const
+{
+	for (int i = 0; i < _animation->mNumChannels; i++) {
+		if (_name == _animation->mChannels[i]->mNodeName.C_Str()) {
+			return _animation->mChannels[i];
+		}
+	}
+	return nullptr;
 }
 
 void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count, u32 size)
@@ -223,6 +311,19 @@ void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count, u32 size)
 		mMaterial->setTexture("normalTexture", mNormal);
 		mMaterial->setBool("hasDisplacement", mDisplacement != nullptr);
 		mMaterial->setTexture("displacement", mDisplacement);
+
+		if (mCurrentAnimation) {
+			f32 ticksPerSecond = mCurrentAnimation->mTicksPerSecond != 0 ? mCurrentAnimation->mTicksPerSecond : 25;
+			f32 timeInTicks = (clock() / 1000.0f) * ticksPerSecond;
+			f32 animationTime = fmod(timeInTicks, mCurrentAnimation->mDuration);
+			aiMatrix4x4 iden;
+			readNodeHierarchy(animationTime, mScene->mRootNode, iden);
+			mMaterial->setBool("hasAnim", true);
+			mMaterial->setMatrixArray("bones", mBonesData);
+		}
+		else {
+			mMaterial->setBool("hasAnim", false);
+		}
 	}
 
 	if (size == 0) {
@@ -270,6 +371,11 @@ void Mesh::destroy()
 	mVBO = 0;
 	mInstanceVBO = 0;
 	mEBO = 0;
+	mBones.clear();
+	mBonesData.clear();
+	if (mScene) {
+		delete mScene;
+	}
 }
 
 void Mesh::setCullMode(CullMode cullmode)
@@ -358,46 +464,47 @@ void Mesh::updateMesh(const Vertex* _vertices, const u32& _verticesCount, const 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesCount * sizeof(u32), (void*)_indices, GL_STATIC_DRAW);
 
-
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, px));
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, nx));
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(6 * sizeof(float)));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tx));
 	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(9 * sizeof(float)));
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, u));
 
 	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(11 * sizeof(float)));
+	glVertexAttribIPointer(4, 4, GL_UNSIGNED_BYTE, sizeof(Vertex), (void*)offsetof(Vertex, bondId));
 	glEnableVertexAttribArray(5);
-	glVertexAttribPointer(5, 4, GL_UNSIGNED_INT, GL_FALSE, sizeof(Vertex), (void*)(15 * sizeof(float)));
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, boneWeights));
 	
+	const int defineStart = 6;
+
 
 	glBindBuffer(GL_ARRAY_BUFFER, mInstanceVBO);
 	if (lightMesh) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(LightInstanceData), (void*)0, GL_DYNAMIC_DRAW);
 		for (u32 i = 0; i < 4; i++) {
-			glEnableVertexAttribArray(6 + i);
-			glVertexAttribPointer(6 + i, 4, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(4 * i * sizeof(float)));
-			glVertexAttribDivisor(6 + i, 1);
+			glEnableVertexAttribArray(defineStart + i);
+			glVertexAttribPointer(defineStart + i, 4, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(4 * i * sizeof(float)));
+			glVertexAttribDivisor(defineStart + i, 1);
 		}
 		for (u32 i = 0; i < 3; i++) {
-			glEnableVertexAttribArray(10 + i);
-			glVertexAttribPointer(10 + i, 3, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, position)) + (i * sizeof(mathfu::vec3))));
-			glVertexAttribDivisor(10 + i, 1);
+			glEnableVertexAttribArray(defineStart + 4 + i);
+			glVertexAttribPointer(defineStart + 4 + i, 3, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, position)) + (i * sizeof(mathfu::vec3))));
+			glVertexAttribDivisor(defineStart + 4 + i, 1);
 		}
 		for (u32 i = 0; i < 3; i++) {
-			glEnableVertexAttribArray(13 + i);
-			glVertexAttribPointer(13 + i, 1, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, power)) + (i * sizeof(float))));
-			glVertexAttribDivisor(13 + i, 1);
+			glEnableVertexAttribArray(defineStart + 7 + i);
+			glVertexAttribPointer(defineStart + 7 + i, 1, GL_FLOAT, GL_FALSE, sizeof(LightInstanceData), (void*)(((int)offsetof(LightInstanceData, power)) + (i * sizeof(float))));
+			glVertexAttribDivisor(defineStart + 7 + i, 1);
 		}
 	}else {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData), (void*)0, GL_DYNAMIC_DRAW);
 		for (u32 i = 0; i < 4; i++) {
-			glEnableVertexAttribArray(6 + i);
-			glVertexAttribPointer(6 + i, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (void*)(4 * i * sizeof(float)));
-			glVertexAttribDivisor(6 + i, 1);
+			glEnableVertexAttribArray(defineStart + i);
+			glVertexAttribPointer(defineStart + i, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(float), (void*)(4 * i * sizeof(float)));
+			glVertexAttribDivisor(defineStart + i, 1);
 		}
 	}
 
@@ -477,4 +584,78 @@ std::string Mesh::getClass() const
 u32 Mesh::getInstanceVBO() const
 {
 	return mInstanceVBO;
+}
+
+aiMatrix4x4 interpolateTranslation(f32 time, const aiNodeAnim* _animNode)
+{
+	aiVector3D position;
+	if (_animNode->mNumPositionKeys == 1) {
+		position = _animNode->mPositionKeys[0].mValue;
+	}
+	else {
+		u32 frameIndex = 0;
+		for (u32 i = 0; i < _animNode->mNumPositionKeys - 1; i++) {
+			if (time < (f32)_animNode->mPositionKeys[i + 1].mTime) {
+				frameIndex = i;
+				break;
+			}
+		}
+		aiVectorKey currentFrame = _animNode->mPositionKeys[frameIndex];
+		aiVectorKey nextFrame = _animNode->mPositionKeys[(frameIndex + 1) % _animNode->mNumPositionKeys];
+		f32 delta = (time - currentFrame.mTime) / (nextFrame.mTime - currentFrame.mTime);
+		position = currentFrame.mValue + delta * (currentFrame.mValue - nextFrame.mValue);
+	}
+
+	aiMatrix4x4 mat;
+	aiMatrix4x4::Translation(position, mat);
+	return mat;
+}
+
+aiMatrix4x4 interpolateRotation(f32 time, const aiNodeAnim* _animNode)	 
+{
+	aiQuaternion rotation;
+	if (_animNode->mNumRotationKeys == 1) {
+		rotation = _animNode->mRotationKeys[0].mValue;
+	}
+	else {
+		u32 frameIndex = 0;
+		for (u32 i = 0; i < _animNode->mNumRotationKeys - 1; i++) {
+			if (time < (f32)_animNode->mRotationKeys[i + 1].mTime) {
+				frameIndex = i;
+				break;
+			}
+		}
+		aiQuatKey currentFrame = _animNode->mRotationKeys[frameIndex];
+		aiQuatKey nextFrame = _animNode->mRotationKeys[(frameIndex + 1) % _animNode->mNumRotationKeys];
+		f32 delta = (time - currentFrame.mTime) / (nextFrame.mTime - currentFrame.mTime);
+		aiQuaternion::Interpolate(rotation, currentFrame.mValue, nextFrame.mValue, delta);
+		rotation.Normalize();
+	}
+
+	return aiMatrix4x4(rotation.GetMatrix());
+}
+
+aiMatrix4x4 interpolateScale(f32 time, const aiNodeAnim* _animNode)
+{
+	aiVector3D scale;
+	if (_animNode->mNumScalingKeys == 1) {
+		scale = _animNode->mScalingKeys[0].mValue;
+	}
+	else {
+		u32 frameIndex = 0;
+		for (u32 i = 0; i < _animNode->mNumScalingKeys - 1; i++) {
+			if (time < (f32)_animNode->mScalingKeys[i + 1].mTime) {
+				frameIndex = i;
+				break;
+			}
+		}
+		aiVectorKey currentFrame = _animNode->mScalingKeys[frameIndex];
+		aiVectorKey nextFrame = _animNode->mScalingKeys[(frameIndex + 1) % _animNode->mNumScalingKeys];
+		f32 delta = (time - currentFrame.mTime) / (nextFrame.mTime - currentFrame.mTime);
+		scale = currentFrame.mValue + delta * (currentFrame.mValue - nextFrame.mValue);
+	}
+
+	aiMatrix4x4 mat;
+	aiMatrix4x4::Scaling(scale, mat);
+	return mat;
 }

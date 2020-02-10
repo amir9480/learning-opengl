@@ -4,6 +4,9 @@
 #include "Node.h"
 #include "Shader.h"
 #include "Camera.h"
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 struct Vertex
 {
@@ -11,8 +14,8 @@ struct Vertex
 	f32 nx, ny, nz;
 	f32 tx, ty, tz;
 	f32 u, v;
+	u8 bondId[4] = { 0 };
 	f32 boneWeights[4] = { 0 };
-	u32 bondId[4] = { 0 };
 
 
 	Vertex(f32 _px, f32 _py, f32 _pz,
@@ -33,6 +36,18 @@ struct Vertex
 		u(_u), v(_v),
 		tx(_tx), ty(_ty), tz(_tz)
 	{}
+
+	Vertex(const Vertex& _other) { *this = _other; }
+
+	Vertex& operator = (const Vertex& _other) {
+		px = _other.px; py = _other.py; pz = _other.pz;
+		nx = _other.nx; ny = _other.ny; nz = _other.nz;
+		tx = _other.tx; ty = _other.ty; tz = _other.tz;
+		u = _other.u; v = _other.v;
+		bondId[0] = _other.bondId[0]; bondId[1] = _other.bondId[1]; bondId[2] = _other.bondId[2]; bondId[3] = _other.bondId[3];
+		boneWeights[0] = _other.boneWeights[0]; boneWeights[1] = _other.boneWeights[1]; boneWeights[2] = _other.boneWeights[2]; boneWeights[3] = _other.boneWeights[3];
+		return *this;
+	}
 };
 
 struct InstanceData
@@ -41,6 +56,28 @@ struct InstanceData
 
 	InstanceData(mathfu::mat4 _world = mathfu::mat4::Identity()) :
 		world(_world) {}
+};
+
+struct Bone
+{
+	Bone() {}
+	Bone(const Bone& _other) { *this = _other; }
+	Bone(Bone&& _other) noexcept { *this = _other; }
+
+	Bone& operator = (const Bone& _other) {
+		name = _other.name;
+		trans = _other.trans;
+		return *this;
+	}
+
+	Bone& operator = (Bone&& _other) noexcept {
+		name = _other.name;
+		trans = _other.trans;
+		return *this;
+	}
+
+	mathfu::mat4 trans;
+	std::string name;
 };
 
 class Camera;
@@ -69,6 +106,10 @@ public:
 	static Mesh* createCone(u32 cols = 12, bool lightMesh = false);
 
 	static Mesh* createFromFile(std::string _path);
+
+	void readNodeHierarchy(const f32& _animationTime, const aiNode* _node, const aiMatrix4x4& parentTransform);
+
+	const aiNodeAnim* findNodeAnimation(const aiAnimation* _animation, const std::string& _name) const;
 
 	void draw(Camera* camera = nullptr, InstanceData* instanceData = nullptr, u32 count = 0, u32 size = 0);
 
@@ -104,18 +145,22 @@ public:
 
 	u32 getInstanceVBO() const;
 private:
-	u32			mVAO;
-	u32			mVBO;
-	u32			mInstanceVBO;
-	u32			mEBO;
-	u32			mVerticesCount;
-	u32			mIndicesCount;
-	CullMode	mCullMode;
-	Shader*		mMaterial;
-	Texture*	mDiffuse = nullptr;
-	Texture*	mNormal = nullptr;
-	Texture*	mDisplacement = nullptr;
-	std::string mHash;
+	u32								mVAO;
+	u32								mVBO;
+	u32								mInstanceVBO;
+	u32								mEBO;
+	u32								mVerticesCount;
+	u32								mIndicesCount;
+	CullMode						mCullMode;
+	Shader*							mMaterial;
+	Texture*						mDiffuse = nullptr;
+	Texture*						mNormal = nullptr;
+	Texture*						mDisplacement = nullptr;
+	std::string						mHash;
+	std::vector<Bone>				mBones;
+	std::vector<mathfu::mat4>		mBonesData;
+	aiScene*						mScene;
+	aiAnimation*					mCurrentAnimation;
 };
 
 #endif // _MESH_H_
