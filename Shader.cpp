@@ -136,7 +136,10 @@ void Shader::setTexture(std::string name, const Texture* value)
 		index = std::distance(mTextures.begin(), mTextures.find(name));
 		value->use(index);
 		setInt(name, index);
-	}
+    }
+	else {
+		setInt(name, 0);
+    }
 }
 
 void Shader::setCustom(std::string name, void* _data, u32 _size)

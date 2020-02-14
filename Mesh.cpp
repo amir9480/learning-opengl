@@ -2,6 +2,8 @@
 #include "Mesh.h"
 #include "3rdparty/picosha2/picosha2.h"
 #include "Light.h"
+#include "Camera.h"
+
 
 aiMatrix4x4 interpolateTranslation(f32 time, const aiNodeAnim* _animNode);
 aiMatrix4x4 interpolateRotation(f32 time, const aiNodeAnim* _animNode);
@@ -274,6 +276,9 @@ void Mesh::readNodeHierarchy(const f32& _animationTime, const aiNode* _node, con
 		trans = interpolateTranslation(_animationTime, nodeAnim) * interpolateRotation(_animationTime, nodeAnim) * interpolateScale(_animationTime, nodeAnim);
 	}
 	aiMatrix4x4 globalTrans =  trans.Transpose() * aiMatrix4x4(parentTransform);
+	if (std::string(_node->mName.C_Str()) == "Root") {
+		globalTrans = aiMatrix4x4();
+	}
 	for (int i = 0; i < mBones.size(); i++) {
 		if (mBones[i].name == _node->mName.C_Str()) {
 			mBonesData[i] = mBones[i].trans * fromAssimpMat(globalTrans);
@@ -311,6 +316,7 @@ void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count, u32 size)
 		mMaterial->setTexture("normalTexture", mNormal);
 		mMaterial->setBool("hasDisplacement", mDisplacement != nullptr);
 		mMaterial->setTexture("displacement", mDisplacement);
+		mMaterial->setBool("depthOnly", camera->getDepthOnly());
 
 		if (mCurrentAnimation) {
 			f32 ticksPerSecond = mCurrentAnimation->mTicksPerSecond != 0 ? mCurrentAnimation->mTicksPerSecond : 25;
@@ -337,11 +343,15 @@ void Mesh::draw(Camera* camera, InstanceData* instanceData, u32 count, u32 size)
 
 	glBindVertexArray(mVAO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-	if (mCullMode == CullMode::None) {
+	CullMode cullMode = mCullMode;
+	if (camera && camera->getCullMode() != CullMode::None) {
+		cullMode = camera->getCullMode();
+	}
+	if (cullMode == CullMode::None) {
 		glDisable(GL_CULL_FACE);
 	} else {
 		glEnable(GL_CULL_FACE);
-		glCullFace(mCullMode == CullMode::Front ? GL_FRONT : GL_BACK);
+		glCullFace(cullMode == CullMode::Front ? GL_FRONT : GL_BACK);
 	}
 	if (instanceData) {
 		glDrawElementsInstanced(GL_TRIANGLES, mIndicesCount, GL_UNSIGNED_INT, 0, count);

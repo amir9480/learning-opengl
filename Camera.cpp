@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera(u32 width, u32 height, ProjectionType projectionType, f32 aspectRatio)
+Camera::Camera(u32 width, u32 height, ProjectionType projectionType, f32 aspectRatio, bool _depthOnly)
 	:Node()
 {
 	mWidth = width;
@@ -18,14 +18,17 @@ Camera::Camera(u32 width, u32 height, ProjectionType projectionType, f32 aspectR
 	glGenFramebuffers(1, &mFrameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
 
-	std::vector<std::string> gBuffers = { "albedo", "normal", "tangent" };
-	for (u32 index = 0; index < gBuffers.size(); index++) {
-		mGBuffer[gBuffers[index]] = new Texture(mWidth, mHeight);
-		glBindTexture(GL_TEXTURE_2D, mGBuffer[gBuffers[index]]->mTexture);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_2D, mGBuffer[gBuffers[index]]->mTexture, 0);
+	mDepthOnly = _depthOnly;
+	if (!_depthOnly) {
+		std::vector<std::string> gBuffers = { "albedo", "normal", "tangent" };
+		for (u32 index = 0; index < gBuffers.size(); index++) {
+			mGBuffer[gBuffers[index]] = new Texture(mWidth, mHeight);
+			glBindTexture(GL_TEXTURE_2D, mGBuffer[gBuffers[index]]->mTexture);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_2D, mGBuffer[gBuffers[index]]->mTexture, 0);
+		}
+		static u32 attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+		glDrawBuffers(4, attachments);
 	}
-	static u32 attachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
-	glDrawBuffers(4, attachments);
 
 
 	mDepth = new Texture(mWidth, mHeight, true);
@@ -63,8 +66,10 @@ Camera::~Camera()
 
 void Camera::applyPostProccesses()
 {
-	for (auto postProccessShader : mPostProccessShaders) {
-		this->postProccess(postProccessShader.second);
+	if (!mDepthOnly) {
+		for (auto postProccessShader : mPostProccessShaders) {
+			this->postProccess(postProccessShader.second);
+		}
 	}
 }
 
@@ -99,15 +104,15 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* 
 	glDisable(GL_DEPTH_TEST);
 	glDepthFunc(GL_NEVER);
 	glBindFramebuffer(GL_FRAMEBUFFER, mPostProccessFrameBuffer);
-	glBindTexture(GL_TEXTURE_2D, mFinalImage->mTexture);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFinalImage->mTexture, 0);
+	glBindTexture(GL_TEXTURE_2D + 15, mFinalImage->mTexture);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D + 15, mFinalImage->mTexture, 0);
 	if (blend) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
 	} else {
 		// Render to temp texture
-		glBindTexture(GL_TEXTURE_2D, mPostProccessTexture->mTexture);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mPostProccessTexture->mTexture, 0);
+		glBindTexture(GL_TEXTURE_2D + 15, mPostProccessTexture->mTexture);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D + 15, mPostProccessTexture->mTexture, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
@@ -119,7 +124,9 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* 
 	if (mesh) {
 		mesh->setMaterial(shader);
 		mesh->draw(this, instanceData, count, size);
-	} else {
+	}
+	else {
+		Mesh::quad()->setMaterial(shader);
 		Mesh::quad()->draw();
 	}
 
@@ -127,8 +134,8 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* 
 		glDisable(GL_BLEND);
 	} else {
 		// Render to main image
-		glBindTexture(GL_TEXTURE_2D, mFinalImage->mTexture);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFinalImage->mTexture, 0);
+		glBindTexture(GL_TEXTURE_2D + 15, mFinalImage->mTexture);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D + 15, mFinalImage->mTexture, 0);
 		glFrontFace(GL_CCW);
 		Shader::simple()->use();
 		Shader::simple()->setTexture("screen", mPostProccessTexture);
@@ -150,15 +157,55 @@ f32 Camera::getFov() const
 	return mFov;
 }
 
+void Camera::setOrthoSize(const f32& _size)
+{
+	mOrthoSize = _size;
+}
+
+f32 Camera::getOrthoSize() const
+{
+	return mOrthoSize;
+}
+
+void Camera::setNear(const f32& _near)
+{
+	mNear = _near;
+}
+
+f32 Camera::getNear() const
+{
+	return mNear;
+}
+
+void Camera::setFar(const f32& _far)
+{
+	mFar = _far;
+}
+
+f32 Camera::getFar() const
+{
+	return mFar;
+}
+
+void Camera::setCullMode(const Mesh::CullMode& _cullmode)
+{
+	mCullMode = _cullmode;
+}
+
+Mesh::CullMode Camera::getCullMode() const
+{
+	return mCullMode;
+}
+
 void Camera::reCompute()
 {
 	mView = mathfu::mat4::LookAt(getGlobalPosition() + getForward(), getGlobalPosition(), getUp(), -1.0).Transpose();
 	if (mProjectionType == ProjectionType::Perspective) {
-		mProjection = mathfu::mat4::Perspective(mFov * mathfu::kDegreesToRadians, mAspectRatio, 0.1f, 1000.0f, -1.0f).Transpose();
+		mProjection = mathfu::mat4::Perspective(mFov * mathfu::kDegreesToRadians, mAspectRatio, mNear, mFar, -1.0f).Transpose();
 		mViewProjection = (mView * mProjection);
 	}
 	else {
-		mProjection = mathfu::mat4::Ortho(-1, 1, -1, 1, 0.01f, 1000.0f, -1.0f);
+		mProjection = mathfu::mat4::Ortho(-mOrthoSize/2, mOrthoSize / 2, -mOrthoSize / 2, mOrthoSize / 2, mNear, mFar, -1.0f).Transpose();
 		mViewProjection = (mView * mProjection);
 	}
 }
@@ -166,6 +213,11 @@ void Camera::reCompute()
 std::string Camera::getClass() const
 {
 	return "Camera";
+}
+
+bool Camera::getDepthOnly() const
+{
+	return mDepthOnly;
 }
 
 Texture* Camera::getGbuffer(std::string _name) const
@@ -187,7 +239,7 @@ void Camera::draw() const
 	glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_DEPTH_TEST);
-	 if (renderType == "depth") {
+	 if (renderType == "depth" || mDepthOnly) {
 		 Shader::simple()->setInt("depth", 1);
 		 Shader::simple()->setTexture("screen", mDepth);
 	 } else if (mGBuffer.find(renderType) == mGBuffer.end()) {

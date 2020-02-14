@@ -7,7 +7,26 @@ Light::Light(Type _type)
 	if (_type != Type::Directional) {
 		mTicking = false;
 	}
+	else {
+		for (int i = 0; i < 3; i++) {
+			mShadowCameras.push_back(new Camera(1024, 1024, Camera::ProjectionType::Ortho, 1, true));
+			mShadowCameras[i]->setName("VIRTUAL_CAMERA");
+			mShadowCameras[i]->setCullMode(Mesh::CullMode::Front);
+			mShadowCameras[i]->setFar(500.0f);
+			//mShadowCameras[i]->getDepth()->setFilter(Texture::Linear);
+			mShadowCameras[i]->setOrthoSize(i == 2 ? 100 : 20 * (i+1));
+			mShadowCameras[i]->addChild(Mesh::createCone());
+		}
+	}
 	mType = _type;
+}
+
+Light::~Light()
+{
+	for (int i = 0; i < mShadowCameras.size(); i++) {
+		delete mShadowCameras[i];
+	}
+	mShadowCameras.clear();
 }
 
 Light::Type Light::getType() const
@@ -76,6 +95,18 @@ void Light::setShaderParameters(Shader* lightShader) const
 	lightShader->setFloat("lightRadius", this->getRadius());
 	lightShader->setFloat("lightCone", this->getCone() * mathfu::kDegreesToRadians * 0.5f);
 	lightShader->setFloat3("lightPosition", this->getPosition());
+	if (mShadowCameras.size() > 0) {
+		for (int i = 0; i < mShadowCameras.size(); i++) {
+			lightShader->setMatrix("shadowVP[" + std::to_string(i) + "]", mShadowCameras[i]->getViewProjection());
+			lightShader->setTexture("theShadowMap[" + std::to_string(i) + "]", mShadowCameras[i]->getDepth());
+		}
+	}
+	else {
+		for (int i = 0; i < 3; i++) {
+			lightShader->setMatrix("shadowVP[" + std::to_string(i) + "]", mathfu::mat4::Identity());
+			lightShader->setTexture("theShadowMap[" + std::to_string(i) + "]", nullptr);
+		}
+	}
 }
 
 std::string Light::getClass() const
@@ -96,13 +127,30 @@ LightInstanceData Light::toLightData() const
 	return out;
 }
 
+void Light::render(Camera* camera)
+{
+	if (mType == Type::Directional && camera->getName() != "VIRTUAL_CAMERA") {
+		for (int i = 0; i < mShadowCameras.size(); i++) {
+			mShadowCameras[i]->setPosition((this->getBackward() * ((camera->getFar() - camera->getNear()) / 3.0f) ) + camera->getPosition());
+			mShadowCameras[i]->lookAt(camera->getPosition());
+			mShadowCameras[i]->render(&Scene::renderCallback, mScene);
+		}
+	}
+}
+
 void Light::postRender(Camera* camera)
 {
-	if (mType == Type::Directional) {
+	if (mType == Type::Directional && camera->getName() != "VIRTUAL_CAMERA") {
 		Shader* lightShader = Shader::lightShader();
 		this->setShaderParameters(lightShader);
+		lightShader->setBool("hasShadow", true);
 		lightShader->setMatrix("MVP", mathfu::mat4::Identity());
+		/*for (int i = 0; i < mShadowCameras.size(); i++) {
+			lightShader->setTexture("theShadowMap[" + std::to_string(i) + "]", mShadowCameras[i]->getDepth());
+		}*/
 		camera->postProccess(lightShader, true);
+		lightShader->setTexture("theShadowMap", 0);
+		lightShader->setBool("hasShadow", false);
 	}
 }
 

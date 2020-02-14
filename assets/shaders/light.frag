@@ -32,12 +32,34 @@ uniform mat4x4 projection;
 uniform mat4x4 viewProjectionInv;
 uniform mat4x4 viewInv;
 uniform mat4x4 projectionInv;
+uniform mat4x4 shadowVP[3];
+uniform bool hasShadow = false;
 
 uniform sampler2D final;
 uniform sampler2D albedo;
 uniform sampler2D normal;
 uniform sampler2D tangent;
 uniform sampler2D depth;
+uniform sampler2D theShadowMap[3];
+
+vec2 poissonDisk[16] = vec2[](
+   vec2(-0.613392, 0.617481),
+   vec2(0.170019, -0.040254),
+   vec2(-0.299417, 0.791925),
+   vec2(0.645680, 0.493210),
+   vec2(-0.651784, 0.717887),
+   vec2(0.421003, 0.027070),
+   vec2(-0.817194, -0.271096),
+   vec2(-0.705374, -0.668203),
+   vec2(0.977050, -0.108615),
+   vec2(0.063326, 0.142369),
+   vec2(0.203528, 0.214331),
+   vec2(-0.667531, 0.326090),
+   vec2(-0.098422, -0.295755),
+   vec2(-0.885922, 0.215369),
+   vec2(0.566637, 0.605213),
+   vec2(0.039766, -0.396100)
+);
 
 struct LightInstanceData
 {
@@ -94,15 +116,46 @@ void main()
 	vec3 worldPos = worldPosFromDepth(depthValue);
 	vec3 camToWorld = worldPos - camPos;
 	float camToWorldLength = length(worldPos - camPos);
-
+	
+	float visibility = 1;
 	vec3 diffuse = albedoPixel.rgb;
 	vec3 specular = vec3(0, 0, 0);
 
 
 	if (lightType == LightTypeDirectional) {
-		diffuse *= max(0.0, dot(normalVec, -_lightDirection)) * lightColor * lightPower;
+		diffuse *= max(0.0, dot(normalVec, -_lightDirection)) * _lightColor * _lightPower;
 		vec3 reflectDir = reflect(-_lightDirection, normalVec);
-		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel.rgb * lightColor * lightPower;
+		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel.rgb * _lightColor * _lightPower;
+		if (hasShadow) {
+			for (int i = 0; i < 3; i++) {
+				vec4 shadowSpacePos = (vec4(worldPos, 1) * shadowVP[i]);
+				shadowSpacePos = vec4(shadowSpacePos.xyz / shadowSpacePos.w, 1);
+				shadowSpacePos = shadowSpacePos * 0.5 + 0.5;
+				if (clamp(shadowSpacePos.x, 0, 1) == shadowSpacePos.x && clamp(shadowSpacePos.y, 0, 1) == shadowSpacePos.y) {
+					//for (int j = -1; j <= 1; j++) {
+					//	for (int k = -1; k <= 1; k++) {
+					//		if (texture(theShadowMap[i], vec2(shadowSpacePos.x + (j* (1.0 / float(textureSize(theShadowMap[i], 0).y))), shadowSpacePos.y + (k*(1.0 / float(textureSize(theShadowMap[i], 0).y))))).r + 0.0005f < shadowSpacePos.z) {
+					//			visibility -= 0.1;
+					//		}
+					//	}
+					//}
+					
+					for (int j = 0; j < 10; j++) {
+						float dot_product = dot(vec4(gl_FragCoord.xyy, j), vec4(12.9898,78.233,45.164,94.673));
+						int index = int(16.0 * fract(sin(dot_product) * 43758.5453))%16;
+						if (texture(theShadowMap[i], shadowSpacePos.xy + poissonDisk[index]/700.0).r + 0.00001f < shadowSpacePos.z) {
+							visibility -= 0.1;
+						}
+					}
+					break;
+				}
+			}
+		}
+		//float l = texture2D(theShadowMap, TexCoord.xy *0.5 + 0.5).r;
+		//l = (2.0 * 0.01) / (100.0 + 0.01 - l * (100.0 - 0.01));
+		//FragColor = texture2D(theShadowMap, TexCoord.xy*0.5 + 0.5);
+		//FragColor = vec4(l,0,0,1);
+		//return;
 	} else if (lightType == LightTypePoint) {
 		vec3 lightToPixel = normalize(worldPos - _lightPosition);
 		float lightToPixelDistance = distance(worldPos, _lightPosition);
@@ -129,7 +182,7 @@ void main()
 	}
 
 
-	FragColor = vec4(diffuse + specular, albedoPixel.a);
+	FragColor = visibility * vec4(diffuse + specular, albedoPixel.a);
 	
 	//FragColor = vec4((normalVec + 0.5) / 2, 1);
 }

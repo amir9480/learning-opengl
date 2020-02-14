@@ -20,6 +20,7 @@ uniform sampler2D normalTexture;
 uniform bool hasNormal;
 uniform sampler2D displacement;
 uniform bool hasDisplacement;
+uniform bool depthOnly;
 
 
 vec2 parallaxMapping(vec2 texCoords, vec3 viewDir)
@@ -42,35 +43,36 @@ vec2 parallaxMapping(vec2 texCoords, vec3 viewDir)
 
 void main()
 {
-	vec2 computedTexCoord = vec2(0, 0);
-	float distanceToCamera = distance(cameraPosition, WorldPos);
-	if (distanceToCamera < 50) {
-		if (hasDisplacement) {
-			computedTexCoord = parallaxMapping(TexCoord,  normalize(ToCamera));
-			if(computedTexCoord.x > 1.0 || computedTexCoord.y > 1.0 || computedTexCoord.x < 0.0 || computedTexCoord.y < 0.0)
-				discard;
-			if (distanceToCamera > 40) {
-				computedTexCoord = mix(TexCoord, computedTexCoord, (50 - distanceToCamera) / 10.0);
+	if (!depthOnly) {
+		vec2 computedTexCoord = vec2(0, 0);
+		float distanceToCamera = distance(cameraPosition, WorldPos);
+		if (distanceToCamera < 50) {
+			if (hasDisplacement) {
+				computedTexCoord = parallaxMapping(TexCoord,  normalize(ToCamera));
+				if(computedTexCoord.x > 1.0 || computedTexCoord.y > 1.0 || computedTexCoord.x < 0.0 || computedTexCoord.y < 0.0)
+					discard;
+				if (distanceToCamera > 40) {
+					computedTexCoord = mix(TexCoord, computedTexCoord, (50 - distanceToCamera) / 10.0);
+				}
+			} else {
+				computedTexCoord = TexCoord;
 			}
-		} else {
-			computedTexCoord = TexCoord;
-		}
-		if (hasNormal) {
-			mat3 TBN = transpose(mat3(Tangent, BiTangent, Normal));
-			vec3 bumpNormal = normalize(texture(normalTexture, computedTexCoord).rgb * 2.0 - 1.0);
-			GNormal = vec4(normalize(bumpNormal * TBN)*0.5 + 0.5, 1);
-			GTangent = vec4(normalize((BiTangent * (GNormal.xyz * 2.0 - 1.0)) * TBN)*0.5 + 0.5, 1);
-			if (distanceToCamera > 40) {
-				GNormal = mix(vec4(normalize(Normal)*0.5 + 0.5, 1.0), GNormal, (50 - distanceToCamera) / 10.0);
+			if (hasNormal) {
+				mat3 TBN = transpose(mat3(Tangent, BiTangent, Normal));
+				vec3 bumpNormal = normalize(texture(normalTexture, computedTexCoord).rgb * 2.0 - 1.0);
+				GNormal = vec4(normalize(bumpNormal * TBN)*0.5 + 0.5, 1);
+				GTangent = vec4(normalize((BiTangent * (GNormal.xyz * 2.0 - 1.0)) * TBN)*0.5 + 0.5, 1);
+				if (distanceToCamera > 40) {
+					GNormal = mix(vec4(normalize(Normal)*0.5 + 0.5, 1.0), GNormal, (50 - distanceToCamera) / 10.0);
+				}
+			} else {
+				GNormal = vec4(normalize(Normal)*0.5 + 0.5, 1.0);
+				GTangent = vec4(normalize(Tangent)*0.5 + 0.5, 1.0);
 			}
 		} else {
 			GNormal = vec4(normalize(Normal)*0.5 + 0.5, 1.0);
-			GTangent = vec4(normalize(Tangent)*0.5 + 0.5, 1.0);
+			computedTexCoord = TexCoord;
 		}
-	} else {
-		GNormal = vec4(normalize(Normal)*0.5 + 0.5, 1.0);
-		computedTexCoord = TexCoord;
+		GAlbedo = vec4(texture2D(diffuse, computedTexCoord).rgb, 1.0);
 	}
-
-	GAlbedo = vec4(texture2D(diffuse, computedTexCoord).rgb, 1.0);
 }

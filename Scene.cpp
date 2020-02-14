@@ -56,7 +56,7 @@ void Scene::renderCallback(Camera* _mainCamera)
 		node->render(_mainCamera);
 	}
 
-	static bool initialized = false;
+	/*static bool initialized = false;
 	static std::vector<InstanceData> idata;
 	static std::vector<mathfu::mat4> tempData;
 	if (initialized == false) {
@@ -70,7 +70,7 @@ void Scene::renderCallback(Camera* _mainCamera)
 	static Mesh* sphere = Mesh::createSphere(120);
 	sphere->setPosition(mathfu::vec3(0, 2, 10));
 	sphere->setScale(mathfu::vec3(5, 5, 5));
-	sphere->draw(_mainCamera, idata);
+	sphere->draw(_mainCamera, idata);*/
 }
 
 void Scene::postRender()

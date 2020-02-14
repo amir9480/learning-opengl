@@ -105,6 +105,18 @@ Node* Node::rotate(mathfu::vec3 _axis, f32 _angle)
 	return this;
 }
 
+Node* Node::setRotation(const mathfu::quat& _rotation)
+{
+	this->mRotation = _rotation;
+	return this;
+}
+
+Node* Node::lookAt(const mathfu::vec3& _pos)
+{
+	this->mRotation = mathfu::quat::LookAt((_pos - mPosition).Normalized(), this->getUp());
+	return this;
+}
+
 Node* Node::setPosition(mathfu::vec3 _position)
 {
 	mPosition = _position;

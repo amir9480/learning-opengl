@@ -3,7 +3,6 @@
 #include "helpers.h"
 #include "Node.h"
 #include "Shader.h"
-#include "Camera.h"
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>

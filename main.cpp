@@ -65,7 +65,7 @@ void MyApp::init()
 	mainCamera->setPosition(mathfu::vec3(0, 1, -2));
 	mainCamera->setParent(mainCameraController);
 	mainCamera->setName("mainCamera");
-	mainCamera->addPostProccessShader("assets/shaders/sky.frag");
+	//mainCamera->addPostProccessShader("assets/shaders/sky.frag");
 	//mainCamera->addPostProccessShader("assets/shaders/blurv.frag");
 	//mainCamera->addPostProccessShader("assets/shaders/blurh.frag");
 	//mainCamera->addPostProccessShader("assets/shaders/red_fragment.frag");
@@ -87,7 +87,7 @@ void MyApp::init()
 		->setDiffuse(towerTexture)->setNormal(towerNormalTexture)->setScale(mathfu::vec3(3, 3, 3))->setPosition(mathfu::vec3(0, 0, 30))
 		->setName("Tower")->rotate(mathfu::vec3(1, 0, 0), -90));
 
-	robot = (Mesh*)(scene->addNode(Mesh::createFromFile("./assets/models/robot/robot.fbx")->setScale(mathfu::vec3(0.1, 0.1, 0.1))->setName("robot")));
+	robot = (Mesh*)(scene->addNode(Mesh::createFromFile("./assets/models/robot/robot.fbx")->setScale(mathfu::vec3(0.02, 0.02, 0.02))->setPosition(mathfu::vec3(2, 0, 0))->setName("robot")));
 
 	scene->find("mesh2")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh3")->setPosition(mathfu::vec3(5, 0, 5)));
 	scene->find("mesh3")->addChild(Mesh::createCube()->setDiffuse(texture1)->setName("mesh4")->setPosition(mathfu::vec3(-5, 0, 0)));
@@ -98,8 +98,8 @@ void MyApp::init()
 	scene->addNode(Mesh::createCube()->setDiffuse(texture1)->setName("mesh9")->setPosition(mathfu::vec3(-20, 1, -20)));
 	scene->addNode(mainCameraController);
 	scene->setMainCamera(reinterpret_cast<Camera*>(mainCameraController->findChild("mainCamera")));
-	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(0.9, 0.95, 1.0))->setPower(0.4)->rotate(mathfu::vec3(1, 0, 0), -120.0));
-	spotLight = scene->addNode((new Light(Light::Type::Spot))->setColor(mathfu::vec3(1.0, 0.5, 0.4))->setCone(80)->setPower(3)->setRadius(30)->rotate(mathfu::vec3(1,0,0), -90)->setPosition(mathfu::vec3(0, 23.0, 25.8))->setName("theSpotLight"));
+	scene->addNode((new Light(Light::Type::Directional))->setColor(mathfu::vec3(255.0 / 255.0, 221.0 / 255.0, 153.0 / 255.0))->setPower(0.4)->rotate(mathfu::vec3(1, 0, 0), -120.0))->rotate(mathfu::vec3(0, 1, 0), 30)->setName("directional_light");
+	spotLight = scene->addNode((new Light(Light::Type::Spot))->setColor(mathfu::vec3(1.0, 0.5, 0.4))->setCone(60)->setPower(3)->setRadius(120)->rotate(mathfu::vec3(1,0,0), -90)->setPosition(mathfu::vec3(0, 23.0, 25.8))->setName("theSpotLight"));
 	for (int i = 0; i < 50; i++) {
 		Node* theNewLight = (new Light(i%2 == 0 ? Light::Type::Spot : Light::Type::Point))
 			->setColor(mathfu::vec3(randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0, randomNumber(0, 250) / 250.0))
@@ -167,31 +167,31 @@ void MyApp::update()
 		}
 	} else if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT)) {
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-			scene->find("mesh2")->move(mathfu::vec3(0, 0, 1) * speed * this->deltaTime);
+			scene->find("robot")->move(scene->find("robot")->getForward() * speed * this->deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-			scene->find("mesh2")->move(mathfu::vec3(0, 0, -1) * speed * this->deltaTime);
+			scene->find("robot")->move(scene->find("robot")->getBackward() * speed * this->deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-			scene->find("mesh2")->move(mathfu::vec3(-1, 0, 0) * speed * this->deltaTime);
+			scene->find("robot")->move(scene->find("robot")->getLeft() * speed * this->deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-			scene->find("mesh2")->move(mathfu::vec3(1, 0, 0) * speed * this->deltaTime);
+			scene->find("robot")->move(scene->find("robot")->getRight() * speed * this->deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-			scene->find("mesh2")->move(mathfu::vec3(0, 1, 0) * speed * this->deltaTime);
+			scene->find("robot")->move(scene->find("robot")->getUp() * speed * this->deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-			scene->find("mesh2")->move(mathfu::vec3(0, -1, 0) * speed * this->deltaTime);
+			scene->find("robot")->move(scene->find("robot")->getDown() * speed * this->deltaTime);
 		}
 		if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-			scene->find("mesh2")->rotate(mathfu::vec3(0, 0, 1), this->deltaTime * 30);
+			scene->find("robot")->rotate(mathfu::vec3(0, 0, 1), this->deltaTime * speed * 3);
 		}
 		if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
-			scene->find("mesh2")->rotate(mathfu::vec3(1, 0, 0), this->deltaTime * 30);
+			scene->find("robot")->rotate(mathfu::vec3(1, 0, 0), this->deltaTime * speed * 3);
 		}
 		if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
-			scene->find("mesh2")->rotate(mathfu::vec3(0, 1, 0), this->deltaTime * 30);
+			scene->find("robot")->rotate(mathfu::vec3(0, 1, 0), this->deltaTime * speed * 3);
 		}
 	} else {
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
@@ -231,6 +231,19 @@ void MyApp::update()
 			mainCamera->renderType = "tangent";
 		}
 	}
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+
+		if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
+			scene->find("directional_light")->rotate(mathfu::vec3(0, 0, 1), speed * this->deltaTime * 30);
+		}
+		if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS) {
+			scene->find("directional_light")->rotate(mathfu::vec3(1, 0, 0), speed * this->deltaTime * 30);
+		}
+		if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+			scene->find("directional_light")->rotate(mathfu::vec3(0, 1, 0), speed * this->deltaTime * 30);
+		}
+	}
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
 		mainCameraController->rotate(mainCameraController->getLeft().Normalized(), -mouseDeltaY * mouseSens * this->deltaTime);
 		mainCamera->rotate(mathfu::vec3(0, 1, 0), mouseDeltaX * mouseSens * this->deltaTime);
@@ -245,7 +258,9 @@ void MyApp::render()
 	scene->preRender();
 	scene->render();
 	scene->postRender();
-    mainCamera->draw();
+	//dynamic_cast<Light*>(scene->find("directional_light"))->mShadowCamera->renderType = "depth";
+	//dynamic_cast<Light*>(scene->find("directional_light"))->mShadowCamera->draw();
+	mainCamera->draw();
 }
 
 void MyApp::renderGUI()
@@ -255,8 +270,19 @@ void MyApp::renderGUI()
 		static float f2 = 0.0f;
 		static float f3 = 0.0f;
 		static float f4 = 0.0f;
+		static float f5 = 0.0f;
+		static float f6 = 0.0f;
+		static float f7 = 0.0f;
 		static int counter = 0;
 		static bool hovered;
+
+		f2 = mainCamera->getPosition().x;
+		f3 = mainCamera->getPosition().y;
+		f4 = mainCamera->getPosition().z;
+
+		f5 = mainCamera->getRotation().ToEulerAngles().x;
+		f6 = mainCamera->getRotation().ToEulerAngles().y;
+		f7 = mainCamera->getRotation().ToEulerAngles().z;
 
 		ImGui::Begin("Hello, world!"); 
 		hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_AnyWindow);
@@ -270,6 +296,12 @@ void MyApp::renderGUI()
 		ImGui::DragFloat("Y", &f3, 0.1f);
 		ImGui::NextColumn();
 		ImGui::DragFloat("Z", &f4, 0.1f);
+		ImGui::NextColumn();
+		ImGui::DragFloat("X", &f5, 0.1f);
+		ImGui::NextColumn();
+		ImGui::DragFloat("Y", &f6, 0.1f);
+		ImGui::NextColumn();
+		ImGui::DragFloat("Z", &f7, 0.1f);
 		ImGui::Columns(1);
 
 		if (ImGui::Button("Button"))                          

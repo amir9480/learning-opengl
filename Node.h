@@ -35,6 +35,10 @@ public:
 
 	Node* rotate(mathfu::vec3 _axis, f32 _angle);
 
+	Node* setRotation(const mathfu::quat& _rotation);
+
+	Node* lookAt(const mathfu::vec3& _pos);
+
 	Node* setPosition(mathfu::vec3 _position);
 
 	Node* setScale(mathfu::vec3 _scale); 

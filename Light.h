@@ -29,6 +29,7 @@ public:
 
 public:
 	Light(Type _type = Type::Point);
+	~Light();
 
 	Light::Type getType() const;
 	Light* setType(Light::Type _newType);
@@ -51,6 +52,8 @@ public:
 
 	LightInstanceData toLightData() const;
 
+	virtual void render(Camera* camera = nullptr);
+
 	virtual void postRender(Camera* camera = nullptr);
 
 	virtual void onEvent(const std::string& name);
@@ -62,6 +65,7 @@ protected:
 	float mPower = 1.0;
 	float mRadius = 10.0f;
 	float mCone = 45.0f;
+	std::vector<Camera*> mShadowCameras;
 };
 
 #endif // _LIGHT_H_
