@@ -65,7 +65,7 @@ void MyApp::init()
 	mainCamera->setPosition(mathfu::vec3(0, 1, -2));
 	mainCamera->setParent(mainCameraController);
 	mainCamera->setName("mainCamera");
-	//mainCamera->addPostProccessShader("assets/shaders/sky.frag");
+	mainCamera->addPostProccessShader("assets/shaders/sky.frag");
 	//mainCamera->addPostProccessShader("assets/shaders/blurv.frag");
 	//mainCamera->addPostProccessShader("assets/shaders/blurh.frag");
 	//mainCamera->addPostProccessShader("assets/shaders/red_fragment.frag");

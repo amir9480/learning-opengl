@@ -45,6 +45,10 @@ public:
 	void setFar(const f32& _far);
 	f32 getFar() const;
 
+
+	f32 getWidth() const;
+	f32 getHeight() const;
+
 	void setCullMode(const Mesh::CullMode& _cullmode);
 	Mesh::CullMode getCullMode() const;
 
@@ -79,7 +83,7 @@ private:
 	f32								mFov = 60.0;
 	f32								mOrthoSize = 100.0f;
 	bool							mDepthOnly = false;
-	f32								mNear = 0.01f;
+	f32								mNear = 0.05f;
 	f32								mFar = 1000.0f;
 	Mesh::CullMode					mCullMode = Mesh::CullMode::None;
 

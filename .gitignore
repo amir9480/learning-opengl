@@ -3,3 +3,5 @@
 /.vscode
 /.vs
 /imgui.ini
+/x64
+/packages/vcpkg.E.Cpp.vcpkg.1.0.0

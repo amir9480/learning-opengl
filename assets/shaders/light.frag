@@ -25,6 +25,8 @@ uniform float lightRadius =  250.0;
 uniform float lightCone =  1.0;
 uniform float lightPower = 1.0;
 uniform vec3 camPos = vec3(0, 0, 0);
+uniform float camNear;
+uniform float camFar;
 uniform mat4x4 MVP;
 uniform mat4x4 viewProjection;
 uniform mat4x4 view;
@@ -32,7 +34,7 @@ uniform mat4x4 projection;
 uniform mat4x4 viewProjectionInv;
 uniform mat4x4 viewInv;
 uniform mat4x4 projectionInv;
-uniform mat4x4 shadowVP[3];
+uniform mat4x4 shadowVP[4];
 uniform bool hasShadow = false;
 
 uniform sampler2D final;
@@ -40,7 +42,7 @@ uniform sampler2D albedo;
 uniform sampler2D normal;
 uniform sampler2D tangent;
 uniform sampler2D depth;
-uniform sampler2D theShadowMap[3];
+uniform sampler2D theShadowMap[4];
 
 vec2 poissonDisk[16] = vec2[](
    vec2(-0.613392, 0.617481),
@@ -88,7 +90,7 @@ float realDepth()
 {
 	float z_b = texture2D(depth, screenCoord).x;
     float z_n = 2.0 * z_b - 1.0;
-    return 2.0 * 0.01 * 1000.0 / (1000.0 + 0.01 - z_n * (1000.0 - 0.01));
+    return 2.0 * camNear * camFar / (camFar + camNear - z_n * (camFar - camNear));
 }
 
 void main()
@@ -127,24 +129,25 @@ void main()
 		vec3 reflectDir = reflect(-_lightDirection, normalVec);
 		specular = vec3(pow(max(0, dot(normalize(worldPos - camPos), reflectDir)), 64)) * albedoPixel.rgb * _lightColor * _lightPower;
 		if (hasShadow) {
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 4; i++) {
 				vec4 shadowSpacePos = (vec4(worldPos, 1) * shadowVP[i]);
 				shadowSpacePos = vec4(shadowSpacePos.xyz / shadowSpacePos.w, 1);
 				shadowSpacePos = shadowSpacePos * 0.5 + 0.5;
-				if (clamp(shadowSpacePos.x, 0, 1) == shadowSpacePos.x && clamp(shadowSpacePos.y, 0, 1) == shadowSpacePos.y) {
+				float bias = 0.0001f + (i > 1 ? i * 0.001f : i*0.0001f);
+				if (clamp(shadowSpacePos.x, 0.001, 0.999) == shadowSpacePos.x && clamp(shadowSpacePos.y, 0.001, 0.999) == shadowSpacePos.y) {
 					//for (int j = -1; j <= 1; j++) {
 					//	for (int k = -1; k <= 1; k++) {
-					//		if (texture(theShadowMap[i], vec2(shadowSpacePos.x + (j* (1.0 / float(textureSize(theShadowMap[i], 0).y))), shadowSpacePos.y + (k*(1.0 / float(textureSize(theShadowMap[i], 0).y))))).r + 0.0005f < shadowSpacePos.z) {
-					//			visibility -= 0.1;
+					//		if (texture(theShadowMap[i], vec2(shadowSpacePos.x + (j* (1.0 / float(textureSize(theShadowMap[i], 0).y / 2))), shadowSpacePos.y + (k*(1.0 / float(textureSize(theShadowMap[i], 0).y))))).r + bias < shadowSpacePos.z) {
+					//			visibility -= 0.0555;
 					//		}
 					//	}
 					//}
-					
-					for (int j = 0; j < 10; j++) {
+					for (int j = 0; j < 8; j++) {
 						float dot_product = dot(vec4(gl_FragCoord.xyy, j), vec4(12.9898,78.233,45.164,94.673));
-						int index = int(16.0 * fract(sin(dot_product) * 43758.5453))%16;
-						if (texture(theShadowMap[i], shadowSpacePos.xy + poissonDisk[index]/700.0).r + 0.00001f < shadowSpacePos.z) {
-							visibility -= 0.1;
+						int index = int(16.0 * fract(sin(dot_product) * 53758.5453))%16;
+						float theDepth = texture(theShadowMap[i], shadowSpacePos.xy + poissonDisk[index]/(700.0 + 200.0*i)).r;
+						if (shadowSpacePos.z <= 1  && theDepth + bias < shadowSpacePos.z) {
+							visibility -= 0.125;
 						}
 					}
 					break;

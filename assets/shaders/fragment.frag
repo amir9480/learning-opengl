@@ -61,7 +61,8 @@ void main()
 				mat3 TBN = transpose(mat3(Tangent, BiTangent, Normal));
 				vec3 bumpNormal = normalize(texture(normalTexture, computedTexCoord).rgb * 2.0 - 1.0);
 				GNormal = vec4(normalize(bumpNormal * TBN)*0.5 + 0.5, 1);
-				GTangent = vec4(normalize((BiTangent * (GNormal.xyz * 2.0 - 1.0)) * TBN)*0.5 + 0.5, 1);
+				//GTangent = vec4(normalize((BiTangent * (GNormal.xyz * 2.0 - 1.0)) * TBN)*0.5 + 0.5, 1);
+				GTangent = vec4(0, 0, 0, 1);
 				if (distanceToCamera > 40) {
 					GNormal = mix(vec4(normalize(Normal)*0.5 + 0.5, 1.0), GNormal, (50 - distanceToCamera) / 10.0);
 				}

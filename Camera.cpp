@@ -100,6 +100,8 @@ void Camera::postProccess(Shader* shader, bool blend, Mesh* mesh, InstanceData* 
 	shader->setMatrix("viewInv", this->getView().Inverse());
 	shader->setMatrix("projectionInv", this->getProjection().Inverse());
 	shader->setFloat2("resolution", mWidth, mHeight);
+	shader->setFloat("camNear", mNear);
+	shader->setFloat("camFar", mFar);
 
 	glDisable(GL_DEPTH_TEST);
 	glDepthFunc(GL_NEVER);
@@ -185,6 +187,16 @@ void Camera::setFar(const f32& _far)
 f32 Camera::getFar() const
 {
 	return mFar;
+}
+
+f32 Camera::getWidth() const
+{
+	return mWidth;
+}
+
+f32 Camera::getHeight() const
+{
+	return mHeight;
 }
 
 void Camera::setCullMode(const Mesh::CullMode& _cullmode)
